@@ -17,6 +17,7 @@ In addition to social features, BOOX lets users organize their reading experienc
 
 
 Technology Stack:
+
 Frontend:
 React.js (JavaScript Library): in order to build a dynamic user interface
 Bootstrap: Styling
