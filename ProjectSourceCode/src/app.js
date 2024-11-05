@@ -2,8 +2,9 @@
 const user_reviews = `
   SELECT DISTINCT
     reviews.review_id,
-    reviews.course_name,
     reviews.book_name,
+    reviews.author,
+    reviews.rating,
     reviews.review_id = $1 AS "taken"
   FROM
     reviews
@@ -38,7 +39,7 @@ app.get('/reviews', (req, res) => {
     const review_id = parseInt(req.body.review_id);
     db.tx(async t => {
       await t.none(
-        'INSERT INTO book_reviews(review_id) VALUES ($1);',
+        'INSERT INTO reviews(review_id) VALUES ($1);',
         [course_id, req.session.user.student_id]
       );
       return t.any(user_reviews, [req.session.user.review_id]);
