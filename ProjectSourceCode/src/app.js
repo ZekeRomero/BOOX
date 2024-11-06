@@ -33,30 +33,37 @@ app.get('/reviews', (req, res) => {
           message: err.message,
         });
       });
-  });
+});
 
-  app.post('/reviews/add', (req, res) => {
-    const review_id = parseInt(req.body.review_id);
-    db.tx(async t => {
-      await t.none(
-        'INSERT INTO reviews(review_id) VALUES ($1);',
-        [course_id, req.session.user.student_id]
-      );
-      return t.any(user_reviews, [req.session.user.review_id]);
-    })
-      .then(courses => {
-        res.render('pages/reviews', {
-          email: user.email,
-          reviews,
-          message: `Successfully added review ${req.body.review_id}`,
-        });
-      })
-      .catch(err => {
-        res.render('pages/reviews', {
-          email: user.email,
-          courses: [],
-          error: true,
-          message: err.message,
-        });
-      });
+app.post('/reviews/add', (req, res) => {
+  const review_id = parseInt(req.body.review_id); // Review ID from user input
+  const review_content = req.body.review_content; // Review content from user input
+  
+  db.tx(async t => {
+    // Insert the new review into the reviews table
+    await t.none(
+      'INSERT INTO reviews(review_id, review_content) VALUES ($1, $2, $3);',
+      [review_id, review_content] 
+    );
+    
+    // reviews for the current user
+    return t.any('SELECT * FROM reviews WHERE student_id = $1;', [student_id]);
+  })
+  .then(reviews => {
+    // If successful, reviews page with the updated list of reviews
+    res.render('pages/reviews', {
+      email: req.session.user.email, 
+      reviews, 
+      message: `Successfully added review ${review_id}`, 
+    });
+  })
+  .catch(err => {
+    // If an error occurs, render the page with the error message
+    res.render('pages/reviews', {
+      email: req.session.user.email, 
+      reviews: [], 
+      error: true, 
+      message: err.message, 
+    });
   });
+});
