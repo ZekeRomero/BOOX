@@ -42,6 +42,25 @@ db.connect()
         console.log('ERROR:', error.message || error);
     });
 
+const createTable = async () => {
+      try {
+          await db.none(`
+              CREATE TABLE IF NOT EXISTS "users" (
+                  user_id SERIAL PRIMARY KEY,  -- the primary key for each entry
+                  username VARCHAR(100) NOT NULL,
+                  fullname VARCHAR(100) NOT NULL,
+                  password VARCHAR(100) NOT NULL
+              );
+          `);
+          console.log("Table 'users' created successfully.");
+      } catch (error) {
+          console.error("Error creating table:", error);
+      }
+  };
+
+  createTable()
+    .then(() => console.log("Database setup complete"))
+    .catch(error => console.error("Database setup failed:", error));
 // *****************************************************
 
 
@@ -77,7 +96,7 @@ app.get('/', (req, res) => {
       res.render('home', { user: req.session.user });
   } else {
       // If the user is not logged in, redirect to the login page
-      res.redirect('pages/login');
+      res.redirect('/login');
   }
 });
 app.get('/searchtest', async (req, res) => {
@@ -138,22 +157,18 @@ app.get('/register', (req, res) => {
 
 // Register
 app.post('/register', async (req, res) => {
-    try {
-        const { username, password } = req.body;
+  try {
+      const { username,fullname, password } = req.body;
+      const hashedPassword = await bcrypt.hash(password, 10);
 
-        // hash the password using bcrypt
-        const hashedPassword = await bcrypt.hash(password, 10);
+      const insertQuery = `INSERT INTO users (username,fullname, password) VALUES ($1,$2, $3)`;
+      await db.none(insertQuery, [username,fullname, hashedPassword]);
 
-        // insert the new user into the users table
-        const insertQuery = `INSERT INTO users (username, password) VALUES ($1, $2)`;
-        await db.none(insertQuery, [username, hashedPassword]);
-
-        // redirect to the login page after successful registration
-        res.redirect('pages/login');
-    } catch (error) {
-        console.error('Error registering user:', error);
-        res.redirect('/register');
-    }
+      res.redirect('/login');
+  } catch (error) {
+      console.error('Error registering user:', error);
+      res.redirect('/register');
+  }
 });
 
 app.get('/login', (req, res) => {
@@ -162,36 +177,31 @@ app.get('/login', (req, res) => {
 
 // Login
 app.post('/login', async (req, res) => {
-    const { username, password } = req.body;
+  const { username, password } = req.body;
 
-    try {
-        // Query to find the user by username
-        const userQuery = 'SELECT * FROM users WHERE username = $1';
-        const user = await db.oneOrNone(userQuery, [username]); // returns one user or null if not found
+  try {
+      const userQuery = 'SELECT * FROM users WHERE username = $1';
+      const user = await db.oneOrNone(userQuery, [username]);
 
-        // user not found, redirect to register page
-        if (!user) {
-            return res.redirect('/register');
-        }
+      if (!user) {
+          return res.redirect('/register');
+      }
 
-        // compare the entered password with the hashed password in the database
-        const match = await bcrypt.compare(password, user.password);
+      const match = await bcrypt.compare(password, user.password);
 
-        if (!match) {
-            // if password doesn't match
-            return res.render('login', { message: 'Incorrect username or password.' });
-        }
+      if (!match) {
+          return res.render('pages/login', { message: 'Incorrect username or password.' });
+      }
 
-        // If password matches, save the user in the session
-        req.session.user = user;
-        req.session.save();
+      req.session.user = user;
+      req.session.save();
 
-        return res.redirect('/discover');
+      return res.redirect('/searchtest');
 
-    } catch (error) {
-        console.error('Error logging in:', error);
-        return res.render('login', { message: 'An error occurred, please try again.' });
-    }
+  } catch (error) {
+      console.error('Error logging in:', error);
+      return res.render('pages/login', { message: 'An error occurred, please try again.' });
+  }
 });
 
 //Rating Route
