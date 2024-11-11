@@ -80,6 +80,33 @@ app.get('/', (req, res) => {
   }
 });
 
+app.get('/searchtest', async (req, res) => {
+  const query = req.query.query;
+
+  try {
+    const response = await axios.get(`https://api2.isbndb.com/books/${query}`, {
+      headers: { 'Authorization': "56937_dcb1ace02f9d3be8f6440ffbe1882eca" }
+    });
+
+    const books = response.data.books;
+    res.send(`
+      <html>
+        <body>
+          <h1>Search Results for "${query}"</h1>
+          <ul>
+            ${books.map(book => `<li>${book.title} by ${book.author}</li>`).join('')}
+          </ul>
+          <a href="/">Back to search</a>
+        </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error(error);
+    res.send('<h1>Error fetching book data. Please try again later.</h1>');
+  }
+});
+
+
 
 app.get('/register', (req, res) => {
     res.render('pages/register');
@@ -217,7 +244,7 @@ app.post('/reviews/add', (req, res) => {
 const auth = (req, res, next) => {
     if (!req.session.user) {
         // Default to login page.
-        return res.redirect('/login');
+        //return res.redirect('/login');
     }
     next();
 };
