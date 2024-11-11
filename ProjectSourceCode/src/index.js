@@ -80,6 +80,7 @@ app.get('/', (req, res) => {
   }
 });
 
+
 app.get('/searchtest', async (req, res) => {
   const query = req.query.query;
 
@@ -89,22 +90,13 @@ app.get('/searchtest', async (req, res) => {
     });
 
     const books = response.data.books;
-    res.send(`
-      <html>
-        <body>
-          <h1>Search Results for "${query}"</h1>
-          <ul>
-            ${books.map(book => `<li>${book.title} by ${book.author}</li>`).join('')}
-          </ul>
-          <a href="/">Back to search</a>
-        </body>
-      </html>
-    `);
+    res.render('pages/searchResults', { query, books });
   } catch (error) {
     console.error(error);
     res.send('<h1>Error fetching book data. Please try again later.</h1>');
   }
 });
+
 
 
 
