@@ -165,7 +165,7 @@ app.get('/reviews', (req, res) => {
       .then(courses => {
         console.log(courses)
         res.render('pages/reviews', {
-          email: user.email,
+          username: user.username,
           reviews,
           action: req.query.taken ? 'delete' : 'add',
         });
@@ -173,7 +173,7 @@ app.get('/reviews', (req, res) => {
       .catch(err => {
         res.render('pages/reviews', {
           reviews: [],
-          email: user.email,
+          username: user.username,
           error: true,
           message: err.message,
         });
@@ -197,7 +197,7 @@ app.post('/reviews/add', (req, res) => {
   .then(reviews => {
     // If successful, reviews page with the updated list of reviews
     res.render('pages/reviews', {
-      email: req.session.user.email, 
+      username: req.session.user.username, 
       reviews, 
       message: `Successfully added review ${review_id}`, 
     });
@@ -205,7 +205,7 @@ app.post('/reviews/add', (req, res) => {
   .catch(err => {
     // If an error occurs, render the page with the error message
     res.render('pages/reviews', {
-      email: req.session.user.email, 
+      username: req.session.user.username, 
       reviews: [], 
       error: true, 
       message: err.message, 
