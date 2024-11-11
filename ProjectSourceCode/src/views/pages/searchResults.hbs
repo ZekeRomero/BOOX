@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html>
   <head>
     <title>Search Results</title>
@@ -8,8 +7,20 @@
     <h1>Search Results for "{{query}}"</h1>
     <ul>
       {{#each books}}
-        <li>{{this.title}} by {{this.author}}</li>
+        <li>
+          <strong>Title:</strong> {{this.title}}<br>
+          <strong>Author(s):</strong> {{this.author}}<br>
+          <strong>Year of Release:</strong> {{this.year}}<br>
+          <strong>ISBN:</strong> {{this.isbn}}<br>
+          <strong>Publisher:</strong> {{this.publisher}}<br>
+          <strong>Subject(s):</strong> {{this.subject}}<br>
+          {{#if this.coverLink}}
+            <img src="{{this.coverLink}}" alt="Cover image of {{this.title}}" width="100"><br>
+          {{/if}}
+          <br>
+        </li>
       {{/each}}
     </ul>
-    <a href="/login">Back to search</a> 
+    <a href="/login">Back to search</a>
+  </body>
 </html>

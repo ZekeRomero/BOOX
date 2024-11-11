@@ -80,7 +80,6 @@ app.get('/', (req, res) => {
   }
 });
 
-
 app.get('/searchtest', async (req, res) => {
   const query = req.query.query;
 
@@ -89,7 +88,16 @@ app.get('/searchtest', async (req, res) => {
       headers: { 'Authorization': "56937_dcb1ace02f9d3be8f6440ffbe1882eca" }
     });
 
-    const books = response.data.books;
+    const books = response.data.books.map(book => ({
+      title: book.title || 'N/A',
+      author: book.authors ? book.authors.join(', ') : 'N/A',
+      year: book.date_published || 'N/A',
+      isbn: book.isbn || 'N/A',
+      publisher: book.publisher || 'N/A',
+      subject: book.subjects ? book.subjects.join(', ') : 'N/A',
+      coverLink: book.image || ''
+    }));
+
     res.render('pages/searchResults', { query, books });
   } catch (error) {
     console.error(error);
