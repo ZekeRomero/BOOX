@@ -71,8 +71,15 @@ app.use(
 
 
 app.get('/', (req, res) => {
-    res.redirect('pages/login');
+  if (req.session.user) {
+      // If the user is logged in, render the home page or whatever page you want
+      res.render('home', { user: req.session.user });
+  } else {
+      // If the user is not logged in, redirect to the login page
+      res.redirect('pages/login');
+  }
 });
+
 
 app.get('/register', (req, res) => {
     res.render('pages/register');
