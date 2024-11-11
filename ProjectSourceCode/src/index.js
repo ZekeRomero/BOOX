@@ -11,6 +11,7 @@ const bodyParser = require('body-parser');
 const session = require('express-session'); // To set the session object. To store or access session data, use the `req.session`, which is (generally) serialized as JSON by the store.
 const bcrypt = require('bcryptjs'); //  To hash passwords
 const axios = require('axios'); // To make HTTP requests from our server. We'll learn more about it in Part C.
+PORT = 3000;
 
 //  Connect to DB -->
 
@@ -69,10 +70,48 @@ app.use(
 // *****************************************************
 
 
-
-app.get('/', (req, res) => {
-    res.redirect('pages/login');
+app.get('/home', (req, res) => {
+  res.send(`
+    <html>
+      <body>
+        <form action="/searchtest" method="GET">
+          <input type="text" name="query" placeholder="Enter book title" required>
+          <button type="submit">Search</button>
+        </form>
+      </body>
+    </html>
+  `);
 });
+app.get('/searchtest', async (req, res) => {
+  const query = req.query.query;
+
+  try {
+    const response = await axios.get(`https://api2.isbndb.com/books/${query}`, {
+      headers: { 'Authorization': "56937_dcb1ace02f9d3be8f6440ffbe1882eca" }
+    });
+
+    const books = response.data.books;
+    res.send(`
+      <html>
+        <body>
+          <h1>Search Results for "${query}"</h1>
+          <ul>
+            ${books.map(book => `<li>${book.title} by ${book.author}</li>`).join('')}
+          </ul>
+          <a href="/">Back to search</a>
+        </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error(error);
+    res.send('<h1>Error fetching book data. Please try again later.</h1>');
+  }
+});
+
+
+//app.get('/', (req, res) => {
+//    res.redirect('pages/login');
+//});
 
 app.get('/register', (req, res) => {
     res.render('pages/register');
@@ -210,7 +249,7 @@ app.post('/reviews/add', (req, res) => {
 const auth = (req, res, next) => {
     if (!req.session.user) {
         // Default to login page.
-        return res.redirect('/login');
+        //return res.redirect('/login');
     }
     next();
 };
