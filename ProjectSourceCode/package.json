@@ -1,5 +1,5 @@
 {
-    "name": "BOOX",
+    "name": "boox",
     "main": "src/index.js",
     "dependencies": {
       "express": "^4.6.1",
