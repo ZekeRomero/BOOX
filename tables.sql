@@ -1,6 +1,8 @@
-CREATE TABLE user (
+CREATE TABLE "user" (
   user_id SERIAL PRIMARY KEY /* the primary key for each entry */,
-  user_name VARCHAR(100) NOT NULL
+  user_name VARCHAR(100) NOT NULL,
+  full_name VARCHAR(100) NOT NULL,
+  pw VARCHAR(100) NOT NULL
 );
 
 
