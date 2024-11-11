@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Book Details</title>
+  </head>
+  <body>
+    <h1>{{book.title}}</h1>
+    <img src="{{book.coverLink}}" alt="Cover image of {{book.title}}" width="200"><br>
+    <strong>Author(s):</strong> {{book.author}}<br>
+    <strong>Year of Release:</strong> {{book.year}}<br>
+    <strong>ISBN:</strong> {{book.isbn}}<br>
+    <strong>Publisher:</strong> {{book.publisher}}<br>
+    <strong>Subject(s):</strong> {{book.subject}}<br>
+    <a href="/searchtest?query={{book.title}}">Back to search results</a>
+  </body>
+</html>

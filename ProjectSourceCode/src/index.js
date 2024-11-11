@@ -79,7 +79,6 @@ app.get('/', (req, res) => {
       res.redirect('pages/login');
   }
 });
-
 app.get('/searchtest', async (req, res) => {
   const query = req.query.query;
 
@@ -90,11 +89,7 @@ app.get('/searchtest', async (req, res) => {
 
     const books = response.data.books.map(book => ({
       title: book.title || 'N/A',
-      author: book.authors ? book.authors.join(', ') : 'N/A',
-      year: book.date_published || 'N/A',
       isbn: book.isbn || 'N/A',
-      publisher: book.publisher || 'N/A',
-      subject: book.subjects ? book.subjects.join(', ') : 'N/A',
       coverLink: book.image || ''
     }));
 
@@ -104,6 +99,34 @@ app.get('/searchtest', async (req, res) => {
     res.send('<h1>Error fetching book data. Please try again later.</h1>');
   }
 });
+
+
+app.get('/book/:isbn', async (req, res) => {
+  const isbn = req.params.isbn;
+
+  try {
+    const response = await axios.get(`https://api2.isbndb.com/books/${isbn}`, {
+      headers: { 'Authorization': "56937_dcb1ace02f9d3be8f6440ffbe1882eca" }
+    });
+
+    const book = response.data.books[0]; // Assuming the API returns an array with one book per ISBN
+    const bookDetails = {
+      title: book.title || 'N/A',
+      author: book.authors ? book.authors.join(', ') : 'N/A',
+      year: book.date_published || 'N/A',
+      isbn: book.isbn || 'N/A',
+      publisher: book.publisher || 'N/A',
+      subject: book.subjects ? book.subjects.join(', ') : 'N/A',
+      coverLink: book.image || ''
+    };
+
+    res.render('pages/bookDetails', { book: bookDetails });
+  } catch (error) {
+    console.error(error);
+    res.send('<h1>Error fetching book details. Please try again later.</h1>');
+  }
+});
+
 
 
 
