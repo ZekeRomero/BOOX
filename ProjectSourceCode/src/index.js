@@ -12,6 +12,8 @@ const session = require('express-session'); // To set the session object. To sto
 const bcrypt = require('bcryptjs'); //  To hash passwords
 const axios = require('axios'); // To make HTTP requests from our server. We'll learn more about it in Part C.
 
+module.exports = app;
+
 //  Connect to DB -->
 
 // create `ExpressHandlebars` instance and configure the layouts and partials dir.
@@ -157,17 +159,31 @@ app.get('/register', (req, res) => {
 
 // Register
 app.post('/register', async (req, res) => {
+  const { username, fullname, password, confirmPassword } = req.body;
+
+  // Check if passwords match
+  if (password !== confirmPassword) {
+    console.log('Passwords do not match');
+    return res.redirect('/register');
+  }
+
   try {
-      const { username,fullname, password } = req.body;
-      const hashedPassword = await bcrypt.hash(password, 10);
+    // Check if the username already exists in the database
+    const existingUser = await db.oneOrNone('SELECT * FROM users WHERE username = $1', [username]);
+    if (existingUser) {
+      console.log('Username already exists');
+      return res.redirect('/register');
+    }
 
-      const insertQuery = `INSERT INTO users (username,fullname, password) VALUES ($1,$2, $3)`;
-      await db.none(insertQuery, [username,fullname, hashedPassword]);
+    // Hash the password and insert the new user into the database
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const insertQuery = `INSERT INTO users (username, fullname, password) VALUES ($1, $2, $3)`;
+    await db.none(insertQuery, [username, fullname, hashedPassword]);
 
-      res.redirect('/login');
+    res.redirect('/login');
   } catch (error) {
-      console.error('Error registering user:', error);
-      res.redirect('/register');
+    console.error('Error registering user:', error);
+    res.redirect('/register');
   }
 });
 
@@ -302,7 +318,15 @@ app.get('/collections', (req, res) => {
     const genres = ['Horror', 'Comedy', 'Romance', 'Sci-Fi', 'Fantasy', 'Mystery']
     res.render('collections', { genres })
 })
+
+// for lab 11 test cases
+app.get('/welcome', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'Welcome!'
+  });
+});
 // *****************************************************
 
-app.listen(3000);
+module.exports = app.listen(3000);
 console.log('Server is listening on port 3000');
