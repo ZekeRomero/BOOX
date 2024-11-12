@@ -148,9 +148,6 @@ app.get('/book/:isbn', async (req, res) => {
 });
 
 
-
-
-
 app.get('/register', (req, res) => {
     res.render('pages/register');
 });
@@ -218,31 +215,24 @@ app.post('/login', async (req, res) => {
   }
 });
 
-//Rating Route
-const user_reviews = `
-  SELECT DISTINCT
-    reviews.review_id,
-    reviews.book_name,
-    reviews.author,
-    reviews.rating,
-    reviews.review_id = $1 AS "taken"
-  FROM
-    reviews
-    JOIN  ON 
-    JOIN  ON 
-  WHERE 
-  ORDER BY reviews.review_id ASC;`;
 
 app.get('/reviews', (req, res) => { 
   const taken = req.query.taken; 
-  db.any('SELECT * FROM reviews WHERE user_id = $1', [req.session.user.user_id]) 
+  
+  db.any(`
+    SELECT reviews.review_id, book.book_name, book.author, reviews.rating 
+    FROM reviews
+    JOIN book ON reviews.book_id = book.book_id
+    WHERE reviews.user_id = $1
+  `, [req.session.user.user_id]) 
   .then(reviews => { 
     res.render('pages/reviews', { 
       username: req.session.user.username, 
       reviews, 
       action: taken ? 'delete' : 'add', 
     }); 
-  }) .catch(err => { 
+  }) 
+  .catch(err => { 
     res.render('pages/reviews', { 
       reviews: [], 
       username: req.session.user.username, 
@@ -251,6 +241,7 @@ app.get('/reviews', (req, res) => {
     }); 
   }); 
 });
+
 
 app.post('/reviews/add', (req, res) => {
   const book_id = parseInt(req.body.book_id); // Book ID from user input
@@ -263,7 +254,12 @@ app.post('/reviews/add', (req, res) => {
       [book_id, rating, user_id]);
   
     // Fetch reviews for the current user
-    return t.any('SELECT * FROM reviews WHERE user_id = $1;', [user_id]);
+    return t.any(`
+      SELECT reviews.review_id, book.book_name, book.author, reviews.rating 
+      FROM reviews
+      JOIN book ON reviews.book_id = book.book_id
+      WHERE reviews.user_id = $1
+    `, [user_id]);
   })
   .then(reviews => {
     // If successful, render the reviews page with the updated list of reviews
@@ -274,7 +270,7 @@ app.post('/reviews/add', (req, res) => {
     });
   })
   .catch(err => {
-    // If an error occurs, error message
+    // If an error occurs, render the page with the error message
     res.render('pages/reviews', {
       username: req.session.user.username,
       reviews: [],
@@ -283,6 +279,7 @@ app.post('/reviews/add', (req, res) => {
     });
   });
 });
+
 
   
 
