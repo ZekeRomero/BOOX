@@ -1,6 +1,3 @@
-
-
-
 const express = require('express'); // To build an application server or API
 const app = express();
 const handlebars = require('express-handlebars');
@@ -101,6 +98,7 @@ app.get('/', (req, res) => {
       res.redirect('/login');
   }
 });
+
 app.get('/searchtest', async (req, res) => {
   const query = req.query.query;
 
@@ -235,60 +233,58 @@ const user_reviews = `
   WHERE 
   ORDER BY reviews.review_id ASC;`;
 
-app.get('/reviews', (req, res) => {
-    const taken = req.query.taken;
-  
-    db.any(taken ? reviews : all_courses, [req.session.user.student_id])
-      .then(courses => {
-        console.log(courses)
-        res.render('pages/reviews', {
-          username: user.username,
-          reviews,
-          action: req.query.taken ? 'delete' : 'add',
-        });
-      })
-      .catch(err => {
-        res.render('pages/reviews', {
-          reviews: [],
-          username: user.username,
-          error: true,
-          message: err.message,
-        });
-      });
+app.get('/reviews', (req, res) => { 
+  const taken = req.query.taken; 
+  db.any('SELECT * FROM reviews WHERE user_id = $1', [req.session.user.user_id]) 
+  .then(reviews => { 
+    res.render('pages/reviews', { 
+      username: req.session.user.username, 
+      reviews, 
+      action: taken ? 'delete' : 'add', 
+    }); 
+  }) .catch(err => { 
+    res.render('pages/reviews', { 
+      reviews: [], 
+      username: req.session.user.username, 
+      error: true, 
+      message: err.message, 
+    }); 
+  }); 
 });
 
 app.post('/reviews/add', (req, res) => {
-  const review_id = parseInt(req.body.review_id); // Review ID from user input
-  const review_content = req.body.review_content; // Review content from user input
-  
+  const book_id = parseInt(req.body.book_id); // Book ID from user input
+  const rating = parseInt(req.body.rating); // Rating from user input
+  const user_id = req.session.user.user_id; // to get the user_id from session
+    
   db.tx(async t => {
     // Insert the new review into the reviews table
-    await t.none(
-      'INSERT INTO reviews(review_id, review_content) VALUES ($1, $2, $3);',
-      [review_id, review_content] 
-    );
-    
-    // reviews for the current user
-    return t.any('SELECT * FROM reviews WHERE student_id = $1;', [student_id]);
+    await t.none('INSERT INTO reviews(book_id, rating, user_id) VALUES ($1, $2, $3);', 
+      [book_id, rating, user_id]);
+  
+    // Fetch reviews for the current user
+    return t.any('SELECT * FROM reviews WHERE user_id = $1;', [user_id]);
   })
   .then(reviews => {
-    // If successful, reviews page with the updated list of reviews
+    // If successful, render the reviews page with the updated list of reviews
     res.render('pages/reviews', {
-      username: req.session.user.username, 
-      reviews, 
-      message: `Successfully added review ${review_id}`, 
+      username: req.session.user.username,
+      reviews,
+      message: `Successfully added review for book ID ${book_id}`,
     });
   })
   .catch(err => {
-    // If an error occurs, render the page with the error message
+    // If an error occurs, error message
     res.render('pages/reviews', {
-      username: req.session.user.username, 
-      reviews: [], 
-      error: true, 
-      message: err.message, 
+      username: req.session.user.username,
+      reviews: [],
+      error: true,
+      message: err.message,
     });
   });
 });
+
+  
 
 // Authentication Middleware.
 const auth = (req, res, next) => {
