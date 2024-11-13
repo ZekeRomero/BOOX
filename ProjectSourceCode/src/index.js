@@ -85,6 +85,19 @@ app.use(
     })
 );
 
+app.use((req, res, next) => {
+  res.locals.user = req.session.user;
+  next();
+});
+
+// Authentication Middleware.
+const auth = (req, res, next) => {
+  if (!req.session.user) {
+      // Default to login page.
+      //return res.redirect('/login');
+  }
+  next();
+};
 // *****************************************************
 
 
@@ -181,7 +194,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
-app.get('/homepage', (req, res) => {
+app.get('/homepage', auth, (req, res) => {
   res.render('pages/homepage');
 });
 
@@ -194,11 +207,10 @@ app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
   try {
-      const userQuery = 'SELECT * FROM users WHERE username = $1';
-      const user = await db.oneOrNone(userQuery, [username]);
-
+      const user = await db.oneOrNone('SELECT * FROM users WHERE username = $1', [username]);
+      
       if (!user) {
-          return res.redirect('/register');
+          return res.render('pages/login', { message: 'Username not found. Please register.' });
       }
 
       const match = await bcrypt.compare(password, user.password);
@@ -207,21 +219,23 @@ app.post('/login', async (req, res) => {
           return res.render('pages/login', { message: 'Incorrect username or password.' });
       }
 
-      req.session.user = user;
-      req.session.save();
-
-      return res.redirect('/homepage');
-
+      req.session.user = user;  // Set the user session
+      req.session.save(err => {
+          if (err) {
+              console.error('Session save error:', err);
+              return res.render('pages/login', { message: 'Session error. Please try again.' });
+          }
+          res.redirect('/homepage');  // Redirect to homepage after login
+      });
   } catch (error) {
       console.error('Error logging in:', error);
-      return res.render('pages/login', { message: 'An error occurred, please try again.' });
+      res.render('pages/login', { message: 'An error occurred, please try again.' });
   }
 });
 
 
 
-
-app.get('/reviews', (req, res) => { 
+app.get('/reviews', auth, (req, res) => { 
   const taken = req.query.taken; 
   
   db.any(`
@@ -248,7 +262,7 @@ app.get('/reviews', (req, res) => {
 });
 
 
-app.post('/reviews/add', (req, res) => {
+app.post('/reviews/add', auth, (req, res) => {
   const book_id = parseInt(req.body.book_id); // Book ID from user input
   const rating = parseInt(req.body.rating); // Rating from user input
   const user_id = req.session.user.user_id; // to get the user_id from session
@@ -286,22 +300,6 @@ app.post('/reviews/add', (req, res) => {
 });
 
 
-  
-
-// Authentication Middleware.
-const auth = (req, res, next) => {
-    if (!req.session.user) {
-        // Default to login page.
-        //return res.redirect('/login');
-    }
-    next();
-};
-
-// Authentication Required
-app.use(auth);
-
-
-
 
 app.get('/logout', (req, res) => {
     req.session.destroy(err => {
@@ -312,7 +310,7 @@ app.get('/logout', (req, res) => {
     });
 });
 
-app.get('/collections', (req, res) => {
+app.get('/collections', auth, (req, res) => {
     const genres = ['Horror', 'Comedy', 'Romance', 'Sci-Fi', 'Fantasy', 'Mystery']
     res.render('collections', { genres })
 })
