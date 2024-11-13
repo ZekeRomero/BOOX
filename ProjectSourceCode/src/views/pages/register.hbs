@@ -9,18 +9,31 @@
 </head>
 <body>
   <div class="container mt-5">
+
+    <!-- Error message display block -->
+    {{#if message}}
+      <div class="alert alert-danger" role="alert">
+        {{message}}
+      </div>
+    {{/if}}
+
     <form action="/register" method="POST">
       <div class="form-group">
         <h2>Full Name</h2>
         <input type="text" id="fullname" name="fullname" class="form-control" required>
+        
         <h2>Username</h2>
-        <input type="username" id="username" name="username" class="form-control" required>
+        <input type="text" id="username" name="username" class="form-control" required>
+        
         <h2>Password</h2>
         <input type="password" id="password" name="password" class="form-control" required>
+        
         <h2>Confirm Password</h2>
         <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required>     
+        
         <p>Already have an account? <a href="/login">Login Here.</a></p>
       </div>
+      
       <button type="submit" class="btn btn-primary">Register</button>
     </form>
   </div>

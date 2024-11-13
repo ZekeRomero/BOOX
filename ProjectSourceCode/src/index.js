@@ -149,8 +149,10 @@ app.get('/book/:isbn', async (req, res) => {
 
 
 app.get('/register', (req, res) => {
-    res.render('pages/register');
+  const message = req.query.message;
+  res.render('pages/register', { message });
 });
+
 
 // Register
 app.post('/register', async (req, res) => {
@@ -158,29 +160,27 @@ app.post('/register', async (req, res) => {
 
   // Check if passwords match
   if (password !== confirmPassword) {
-    console.log('Passwords do not match');
-    return res.redirect('/register');
+      return res.redirect('/register?message=Passwords do not match');
   }
 
   try {
-    // Check if the username already exists in the database
-    const existingUser = await db.oneOrNone('SELECT * FROM users WHERE username = $1', [username]);
-    if (existingUser) {
-      console.log('Username already exists');
-      return res.redirect('/register');
-    }
+      // Check if the username already exists in the database
+      const existingUser = await db.oneOrNone('SELECT * FROM users WHERE username = $1', [username]);
+      if (existingUser) {
+          return res.redirect('/register?message=Username already exists');
+      }
 
-    // Hash the password and insert the new user into the database
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const insertQuery = `INSERT INTO users (username, fullname, password) VALUES ($1, $2, $3)`;
-    await db.none(insertQuery, [username, fullname, hashedPassword]);
+      // Hash the password and insert the new user into the database
+      const hashedPassword = await bcrypt.hash(password, 10);
+      await db.none('INSERT INTO users (username, fullname, password) VALUES ($1, $2, $3)', [username, fullname, hashedPassword]);
 
-    res.redirect('/login');
+      res.redirect('/login');
   } catch (error) {
-    console.error('Error registering user:', error);
-    res.redirect('/register');
+      console.error('Error registering user:', error);
+      res.redirect('/register?message=An error occurred. Please try again.');
   }
 });
+
 
 app.get('/login', (req, res) => {
     res.render('pages/login');
