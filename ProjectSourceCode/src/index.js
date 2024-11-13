@@ -181,6 +181,9 @@ app.post('/register', async (req, res) => {
   }
 });
 
+app.get('/homepage', (req, res) => {
+  res.render('pages/homepage');
+});
 
 app.get('/login', (req, res) => {
     res.render('pages/login');
@@ -207,13 +210,15 @@ app.post('/login', async (req, res) => {
       req.session.user = user;
       req.session.save();
 
-      return res.redirect('/searchtest');
+      return res.redirect('/homepage');
 
   } catch (error) {
       console.error('Error logging in:', error);
       return res.render('pages/login', { message: 'An error occurred, please try again.' });
   }
 });
+
+
 
 
 app.get('/reviews', (req, res) => { 
