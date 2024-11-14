@@ -98,6 +98,17 @@ app.use((req, res, next) => {
   res.locals.user = req.session.user;
   next();
 });
+
+
+// Authentication Middleware.
+const auth = (req, res, next) => {
+  if (!req.session.user) {
+      // Default to login page.
+      //return res.redirect('/login');
+  }
+  next();
+};
+
 // *****************************************************
 
 
@@ -166,16 +177,17 @@ app.get('/register', (req, res) => {
 });
 
 //Register
+
 app.post('/register', async (req, res) => {
   const { username, fullname, password, confirmPassword } = req.body;
 
   //Check if passwords match
   if (password !== confirmPassword) {
-    console.log('Passwords do not match');
-    return res.redirect('/register');
+      return res.redirect('/register?message=Passwords do not match');
   }
 
   try {
+
     //Check if the username already exists in the database
     const existingUser = await db.oneOrNone('SELECT * FROM users WHERE username = $1', [username]);
     if (existingUser) {
@@ -188,11 +200,16 @@ app.post('/register', async (req, res) => {
     const insertQuery = `INSERT INTO users (username, fullname, password) VALUES ($1, $2, $3)`;
     await db.none(insertQuery, [username, fullname, hashedPassword]);
 
-    res.redirect('/login');
+
+      res.redirect('/login');
   } catch (error) {
-    console.error('Error registering user:', error);
-    res.redirect('/register');
+      console.error('Error registering user:', error);
+      res.redirect('/register?message=An error occurred. Please try again.');
   }
+});
+
+app.get('/homepage', auth, (req, res) => {
+  res.render('pages/homepage');
 });
 
 app.get('/login', (req, res) => {
@@ -204,6 +221,7 @@ app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
   try {
+
     const userQuery = 'SELECT * FROM users WHERE username = $1';
     const user = await db.oneOrNone(userQuery, [username]);
 
@@ -211,11 +229,13 @@ app.post('/login', async (req, res) => {
       return res.redirect('/register');
     }
 
+
     const match = await bcrypt.compare(password, user.password);
 
     if (!match) {
       return res.render('pages/login', { message: 'Incorrect username or password.' });
     }
+
 
     req.session.user = user;
     req.session.save();
@@ -233,6 +253,7 @@ app.post('/login', async (req, res) => {
 
 app.get('/reviews', (req, res) => {
   const taken = req.query.taken;
+
 
   db.any(`
     SELECT reviews.review_id, book.book_name, book.author, reviews.rating 
@@ -258,7 +279,7 @@ app.get('/reviews', (req, res) => {
 });
 
 
-app.post('/reviews/add', (req, res) => {
+app.post('/reviews/add', auth, (req, res) => {
   const book_id = parseInt(req.body.book_id); // Book ID from user input
   const rating = parseInt(req.body.rating); // Rating from user input
   const user_id = req.session.user.user_id; // to get the user_id from session
@@ -294,6 +315,7 @@ app.post('/reviews/add', (req, res) => {
       });
     });
 });
+
 
 
 
@@ -367,6 +389,7 @@ app.get('/friends', async (req, res) => {
 });
 
 
+
 app.get('/logout', (req, res) => {
   req.session.destroy(err => {
     if (err) {
@@ -376,10 +399,110 @@ app.get('/logout', (req, res) => {
   });
 });
 
+
 app.get('/collections', (req, res) => {
   const genres = ['Horror', 'Comedy', 'Romance', 'Sci-Fi', 'Fantasy', 'Mystery']
   res.render('collections', { genres })
+
 })
+
+app.post('/delete-account', async (req, res) => {
+  if(!req.session.user) {
+    return res.redirect('/login'); // redirect to login if not logged in
+  }
+
+  try{
+    const userId = req.session.user.id;
+
+    // delete user from database
+    await db.none('DELETE FROM users WHERE id = $1', [userId]);
+
+    // destroy session
+    req.session.destroy(err => {
+      if (err) {
+        return res.render('settings', { message: 'An error occurred. Please try again.'});
+    }
+
+    res.render('pages/logout', { message: 'Your account has been successfully deleted.'});
+    });
+  } catch (error) {
+      console.error('Error deleting account:', error);
+      res.render('settings', { message: 'An error occurred while deleting your account.'});
+  }
+});
+
+app.post('/change-username', async (req, res) => {
+  if(!req.session.user) {
+    return res.redirect('/login'); // redirect to login if not logged in
+  }
+
+  try{
+    const userId = req.session.user.id;
+    const newUsername = req.body['new-username'];
+
+    // update username in database
+    await db.none('UPDATE users SET username = $1 WHERE id = $2', [newUsername, userId]);
+
+    // update session
+    req.session.user.username = newUsername;
+
+    res.render('settings', { message: 'Username successfully changed.' });
+  } catch {
+    console.error('Error changing username:', error);
+    res.render('settings', { message: 'An error occurred while changing your username.'});
+  }
+});
+
+app.post('/change-email', async (req, res) => {
+  if(!req.session.user) {
+    return res.redirect('/login'); // redirect to login if not logged in
+  }
+
+  try{
+    const userId = req.session.user.id;
+    const newEmail = req.body['new-email'];
+
+    // update email in database
+    await db.none('UPDATE users SET email = $1 WHERE id = $2', [newEmail, userId]);
+
+    // update session
+    req.session.user.email = newEmail;
+
+    res.render('settings', { message: 'Email successfully changed.' });
+  } catch {
+    console.error('Error changing email:', error);
+    res.render('settings', { message: 'An error occurred while changing your email.'});
+  }
+});
+
+app.post('/change-password', async (req, res) => {
+  if(!req.session.user) {
+    return res.redirect('/login'); // redirect to login if not logged in
+  }
+
+  const newPassword = req.body['new-password'];
+  const confirmNewPassword = req.body['confirm-new-password'];
+
+  // Check if the new password and confirmation match
+  if (newPassword !== confirmNewPassword) {
+    return res.render('settings', { message: 'Passwords do not match.' });
+  }
+
+  try{
+    const userId = req.session.user.id;
+    
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // update password in database
+    await db.none('UPDATE users SET password = $1 WHERE id = $2', [hashedPassword, userId]);
+
+    res.render('settings', { message: 'Password successfully changed.' });
+  } catch {
+    console.error('Error changing password:', error);
+    res.render('settings', { message: 'An error occurred while changing your password.'});
+  }
+});
 
 // for lab 11 test cases
 app.get('/welcome', (req, res) => {

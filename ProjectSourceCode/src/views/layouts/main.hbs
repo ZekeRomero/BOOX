@@ -1,7 +1,15 @@
-
 {{> head}}
 
-{{> navbar}}
-{{{body}}}
+<body class="h-100 d-flex flex-column">
+  {{> navbar}}
 
-{{> footer}}
+  <main class="flex-grow-1">
+    {{{body}}}
+  </main>
+
+  {{> footer}}
+
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz4fnFO9gybBogGzS3pFdFNp7N1aL7DKEOF6Zlqwov0GhCWRPbATf0yjkH" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12wR/Tr5e5/Gn0taV6E3e9kM/g1hzwsd2lHX5FXI6BfLAHA/" crossorigin="anonymous"></script>
+</body>
+</html>
