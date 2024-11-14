@@ -15,35 +15,35 @@ module.exports = app;
 
 // create `ExpressHandlebars` instance and configure the layouts and partials dir.
 const hbs = handlebars.create({
-    extname: 'hbs',
-    layoutsDir: __dirname + '/views/layouts',
-    partialsDir: __dirname + '/views/partials',
+  extname: 'hbs',
+  layoutsDir: __dirname + '/views/layouts',
+  partialsDir: __dirname + '/views/partials',
 });
 
 // database configuration
 const dbConfig = {
-    host: 'db', // the database server
-    port: 5432, // the database port
-    database: process.env.POSTGRES_DB, // the database name
-    user: process.env.POSTGRES_USER, // the user account to connect with
-    password: process.env.POSTGRES_PASSWORD, // the password of the user account
+  host: 'db', // the database server
+  port: 5432, // the database port
+  database: process.env.POSTGRES_DB, // the database name
+  user: process.env.POSTGRES_USER, // the user account to connect with
+  password: process.env.POSTGRES_PASSWORD, // the password of the user account
 };
 
 const db = pgp(dbConfig);
 
 // test your database
 db.connect()
-    .then(obj => {
-        console.log('Database connection successful'); // you can view this message in the docker compose logs
-        obj.done(); // success, release the connection;
-    })
-    .catch(error => {
-        console.log('ERROR:', error.message || error);
-    });
+  .then(obj => {
+    console.log('Database connection successful'); // you can view this message in the docker compose logs
+    obj.done(); // success, release the connection;
+  })
+  .catch(error => {
+    console.log('ERROR:', error.message || error);
+  });
 
 const createTable = async () => {
-      try {
-          await db.none(`
+  try {
+    await db.none(`
               CREATE TABLE IF NOT EXISTS "users" (
                   user_id SERIAL PRIMARY KEY,  -- the primary key for each entry
                   username VARCHAR(100) NOT NULL,
@@ -51,15 +51,24 @@ const createTable = async () => {
                   password VARCHAR(100) NOT NULL
               );
           `);
-          console.log("Table 'users' created successfully.");
-      } catch (error) {
-          console.error("Error creating table:", error);
-      }
-  };
+    console.log("Table 'users' created successfully.");
 
-  createTable()
-    .then(() => console.log("Database setup complete"))
-    .catch(error => console.error("Database setup failed:", error));
+    await db.none(`
+            CREATE TABLE IF NOT EXISTS "friends" (
+                user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+                friend_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+                PRIMARY KEY (user_id, friend_id)
+            );
+        `);
+    console.log("Table 'friends' created successfully.");
+  } catch (error) {
+    console.error("Error creating table:", error);
+  }
+};
+
+createTable()
+  .then(() => console.log("Database setup complete"))
+  .catch(error => console.error("Database setup failed:", error));
 // *****************************************************
 
 
@@ -72,23 +81,24 @@ app.use('/static', express.static('src'));
 
 // initialize session variables
 app.use(
-    session({
-        secret: process.env.SESSION_SECRET,
-        saveUninitialized: false,
-        resave: false,
-    })
+  session({
+    secret: process.env.SESSION_SECRET,
+    saveUninitialized: false,
+    resave: false,
+  })
 );
 
 app.use(
-    bodyParser.urlencoded({
-        extended: true,
-    })
+  bodyParser.urlencoded({
+    extended: true,
+  })
 );
 
 app.use((req, res, next) => {
   res.locals.user = req.session.user;
   next();
 });
+
 
 // Authentication Middleware.
 const auth = (req, res, next) => {
@@ -98,17 +108,18 @@ const auth = (req, res, next) => {
   }
   next();
 };
+
 // *****************************************************
 
 
 
 app.get('/', (req, res) => {
   if (req.session.user) {
-      // If the user is logged in, render the home page or whatever page you want
-      res.render('home', { user: req.session.user });
+    // If the user is logged in, render the home page or whatever page you want
+    res.render('home', { user: req.session.user });
   } else {
-      // If the user is not logged in, redirect to the login page
-      res.redirect('/login');
+    // If the user is not logged in, redirect to the login page
+    res.redirect('/login');
   }
 });
 
@@ -162,30 +173,33 @@ app.get('/book/:isbn', async (req, res) => {
 
 
 app.get('/register', (req, res) => {
-  const message = req.query.message;
-  res.render('pages/register', { message });
+  res.render('pages/register');
 });
 
+//Register
 
-// Register
 app.post('/register', async (req, res) => {
   const { username, fullname, password, confirmPassword } = req.body;
 
-  // Check if passwords match
+  //Check if passwords match
   if (password !== confirmPassword) {
       return res.redirect('/register?message=Passwords do not match');
   }
 
   try {
-      // Check if the username already exists in the database
-      const existingUser = await db.oneOrNone('SELECT * FROM users WHERE username = $1', [username]);
-      if (existingUser) {
-          return res.redirect('/register?message=Username already exists');
-      }
 
-      // Hash the password and insert the new user into the database
-      const hashedPassword = await bcrypt.hash(password, 10);
-      await db.none('INSERT INTO users (username, fullname, password) VALUES ($1, $2, $3)', [username, fullname, hashedPassword]);
+    //Check if the username already exists in the database
+    const existingUser = await db.oneOrNone('SELECT * FROM users WHERE username = $1', [username]);
+    if (existingUser) {
+      console.log('Username already exists');
+      return res.redirect('/register');
+    }
+
+    //Hash the password and insert the new user into the database
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const insertQuery = `INSERT INTO users (username, fullname, password) VALUES ($1, $2, $3)`;
+    await db.none(insertQuery, [username, fullname, hashedPassword]);
+
 
       res.redirect('/login');
   } catch (error) {
@@ -199,66 +213,69 @@ app.get('/homepage', auth, (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-    res.render('pages/login');
+  res.render('pages/login');
 });
 
-// Login
+//ogin
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
   try {
-      const user = await db.oneOrNone('SELECT * FROM users WHERE username = $1', [username]);
-      
-      if (!user) {
-          return res.render('pages/login', { message: 'Username not found. Please register.' });
-      }
 
-      const match = await bcrypt.compare(password, user.password);
+    const userQuery = 'SELECT * FROM users WHERE username = $1';
+    const user = await db.oneOrNone(userQuery, [username]);
 
-      if (!match) {
-          return res.render('pages/login', { message: 'Incorrect username or password.' });
-      }
+    if (!user) {
+      return res.redirect('/register');
+    }
 
-      req.session.user = user;  // Set the user session
-      req.session.save(err => {
-          if (err) {
-              console.error('Session save error:', err);
-              return res.render('pages/login', { message: 'Session error. Please try again.' });
-          }
-          res.redirect('/homepage');  // Redirect to homepage after login
-      });
+
+    const match = await bcrypt.compare(password, user.password);
+
+    if (!match) {
+      return res.render('pages/login', { message: 'Incorrect username or password.' });
+    }
+
+
+    req.session.user = user;
+    req.session.save();
+
+    return res.redirect('/searchtest');
+
   } catch (error) {
-      console.error('Error logging in:', error);
-      res.render('pages/login', { message: 'An error occurred, please try again.' });
+    console.error('Error logging in:', error);
+    return res.render('pages/login', { message: 'An error occurred, please try again.' });
   }
 });
 
 
 
-app.get('/reviews', auth, (req, res) => { 
-  const taken = req.query.taken; 
-  
+
+app.get('/reviews', (req, res) => {
+  const taken = req.query.taken;
+
+
   db.any(`
     SELECT reviews.review_id, book.book_name, book.author, reviews.rating 
     FROM reviews
     JOIN book ON reviews.book_id = book.book_id
     WHERE reviews.user_id = $1
-  `, [req.session.user.user_id]) 
-  .then(reviews => { 
-    res.render('pages/reviews', { 
-      username: req.session.user.username, 
-      reviews, 
-      action: taken ? 'delete' : 'add', 
-    }); 
-  }) 
-  .catch(err => { 
-    res.render('pages/reviews', { 
-      reviews: [], 
-      username: req.session.user.username, 
-      error: true, 
-      message: err.message, 
-    }); 
-  }); 
+  `, [req.session.user.user_id])
+    .then(reviews => {
+      res.render('pages/reviews', {
+        username: req.session.user.username,
+        reviews,
+        action: taken ? 'delete' : 'add',
+      });
+    })
+    .catch(err => {
+      res.render('pages/reviews', {
+        reviews: [],
+        username: req.session.user.username,
+        error: true,
+        message: err.message,
+      });
+    });
 });
 
 
@@ -266,13 +283,13 @@ app.post('/reviews/add', auth, (req, res) => {
   const book_id = parseInt(req.body.book_id); // Book ID from user input
   const rating = parseInt(req.body.rating); // Rating from user input
   const user_id = req.session.user.user_id; // to get the user_id from session
-    
+
   db.tx(async t => {
-    // Insert the new review into the reviews table
-    await t.none('INSERT INTO reviews(book_id, rating, user_id) VALUES ($1, $2, $3);', 
+    //Insert the new review into the reviews table
+    await t.none('INSERT INTO reviews(book_id, rating, user_id) VALUES ($1, $2, $3);',
       [book_id, rating, user_id]);
-  
-    // Fetch reviews for the current user
+
+    //Fetch reviews for the current user
     return t.any(`
       SELECT reviews.review_id, book.book_name, book.author, reviews.rating 
       FROM reviews
@@ -280,39 +297,113 @@ app.post('/reviews/add', auth, (req, res) => {
       WHERE reviews.user_id = $1
     `, [user_id]);
   })
-  .then(reviews => {
-    // If successful, render the reviews page with the updated list of reviews
-    res.render('pages/reviews', {
-      username: req.session.user.username,
-      reviews,
-      message: `Successfully added review for book ID ${book_id}`,
+    .then(reviews => {
+      // If successful, render the reviews page with the updated list of reviews
+      res.render('pages/reviews', {
+        username: req.session.user.username,
+        reviews,
+        message: `Successfully added review for book ID ${book_id}`,
+      });
+    })
+    .catch(err => {
+      // If an error occurs, render the page with the error message
+      res.render('pages/reviews', {
+        username: req.session.user.username,
+        reviews: [],
+        error: true,
+        message: err.message,
+      });
     });
-  })
-  .catch(err => {
-    // If an error occurs, render the page with the error message
-    res.render('pages/reviews', {
-      username: req.session.user.username,
-      reviews: [],
-      error: true,
-      message: err.message,
-    });
-  });
+});
+
+
+
+
+
+
+//Authentication Middleware.
+const auth = (req, res, next) => {
+  if (!req.session.user) {
+    //Default to login page.
+    //return res.redirect('/login');
+  }
+  next();
+};
+
+//Authentication Required
+app.use(auth);
+
+//Add a friend
+app.post('/friends/add', async (req, res) => {
+  const friendUsername = req.body.friendUsername; //Extracts the username of the friend to be added from the request body
+  const userId = req.session.user.user_id; //Retrieves the user_id from the current session, which identifies the logged-in user.
+
+  try {
+    // Find friend by username
+    const friend = await db.oneOrNone('SELECT * FROM users WHERE username = $1', [friendUsername]);//searches for user, check db returns null or single name, checks again for name
+
+    if (!friend) {
+      return res.render('pages/friends', { message: 'User not found.' });//print user notfound
+    }
+
+    //Insert friend relationship???
+    await db.none('INSERT INTO friends(user_id, friend_id) VALUES ($1, $2)', [userId, friend.user_id]);//SQL query that inserts a record into the friends table. It creates a new relationship between the logged-in user (userId) and the found friend????
+    res.redirect('/friends');
+  } catch (error) {
+    console.error('Error adding friend:', error);
+    res.render('pages/friends', { message: 'Error adding friend.' });
+  }
+});
+
+// Remove a friend
+app.post('/friends/remove', async (req, res) => { //finds friends id
+  const friendId = req.body.friendId;
+  const userId = req.session.user.user_id;
+
+  try {
+    await db.none('DELETE FROM friends WHERE user_id = $1 AND friend_id = $2', [userId, friendId]);//sql deletes friend and matches userid and friendid
+    res.redirect('/friends');
+  } catch (error) {
+    console.error('Error removing friend:', error);
+    res.render('pages/friends', { message: 'Error removing friend.' });
+  }
+});
+
+//view friends list
+app.get('/friends', async (req, res) => {
+  const userId = req.session.user.user_id;//retrieves userid
+
+  try {
+    const friends = await db.any(`
+          SELECT users.username, users.fullname, users.user_id
+          FROM friends
+          JOIN users ON friends.friend_id = users.user_id
+          WHERE friends.user_id = $1
+      `, [userId]);//adds user,name,id to friends table. joins to friends id
+
+    res.render('pages/friends', { friends });
+  } catch (error) {
+    console.error('Error fetching friends:', error);
+    res.render('pages/friends', { friends: [], message: 'Error fetching friends list.' });
+  }
 });
 
 
 
 app.get('/logout', (req, res) => {
-    req.session.destroy(err => {
-        if (err) {
-            return res.redirect('/home');
-        }
-        res.render('pages/logout');
-    });
+  req.session.destroy(err => {
+    if (err) {
+      return res.redirect('/home');
+    }
+    res.render('pages/logout');
+  });
 });
 
-app.get('/collections', auth, (req, res) => {
-    const genres = ['Horror', 'Comedy', 'Romance', 'Sci-Fi', 'Fantasy', 'Mystery']
-    res.render('collections', { genres })
+
+app.get('/collections', (req, res) => {
+  const genres = ['Horror', 'Comedy', 'Romance', 'Sci-Fi', 'Fantasy', 'Mystery']
+  res.render('collections', { genres })
+
 })
 
 app.post('/delete-account', async (req, res) => {
