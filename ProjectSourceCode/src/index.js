@@ -165,25 +165,25 @@ app.get('/register', (req, res) => {
   res.render('pages/register');
 });
 
-// Register
+//Register
 app.post('/register', async (req, res) => {
   const { username, fullname, password, confirmPassword } = req.body;
 
-  // Check if passwords match
+  //Check if passwords match
   if (password !== confirmPassword) {
     console.log('Passwords do not match');
     return res.redirect('/register');
   }
 
   try {
-    // Check if the username already exists in the database
+    //Check if the username already exists in the database
     const existingUser = await db.oneOrNone('SELECT * FROM users WHERE username = $1', [username]);
     if (existingUser) {
       console.log('Username already exists');
       return res.redirect('/register');
     }
 
-    // Hash the password and insert the new user into the database
+    //Hash the password and insert the new user into the database
     const hashedPassword = await bcrypt.hash(password, 10);
     const insertQuery = `INSERT INTO users (username, fullname, password) VALUES ($1, $2, $3)`;
     await db.none(insertQuery, [username, fullname, hashedPassword]);
@@ -199,7 +199,7 @@ app.get('/login', (req, res) => {
   res.render('pages/login');
 });
 
-// Login
+//ogin
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
@@ -264,11 +264,11 @@ app.post('/reviews/add', (req, res) => {
   const user_id = req.session.user.user_id; // to get the user_id from session
 
   db.tx(async t => {
-    // Insert the new review into the reviews table
+    //Insert the new review into the reviews table
     await t.none('INSERT INTO reviews(book_id, rating, user_id) VALUES ($1, $2, $3);',
       [book_id, rating, user_id]);
 
-    // Fetch reviews for the current user
+    //Fetch reviews for the current user
     return t.any(`
       SELECT reviews.review_id, book.book_name, book.author, reviews.rating 
       FROM reviews
