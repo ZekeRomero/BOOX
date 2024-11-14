@@ -315,6 +315,104 @@ app.get('/collections', auth, (req, res) => {
     res.render('collections', { genres })
 })
 
+app.post('/delete-account', async (req, res) => {
+  if(!req.session.user) {
+    return res.redirect('/login'); // redirect to login if not logged in
+  }
+
+  try{
+    const userId = req.session.user.id;
+
+    // delete user from database
+    await db.none('DELETE FROM users WHERE id = $1', [userId]);
+
+    // destroy session
+    req.session.destroy(err => {
+      if (err) {
+        return res.render('settings', { message: 'An error occurred. Please try again.'});
+    }
+
+    res.render('pages/logout', { message: 'Your account has been successfully deleted.'});
+    });
+  } catch (error) {
+      console.error('Error deleting account:', error);
+      res.render('settings', { message: 'An error occurred while deleting your account.'});
+  }
+});
+
+app.post('/change-username', async (req, res) => {
+  if(!req.session.user) {
+    return res.redirect('/login'); // redirect to login if not logged in
+  }
+
+  try{
+    const userId = req.session.user.id;
+    const newUsername = req.body['new-username'];
+
+    // update username in database
+    await db.none('UPDATE users SET username = $1 WHERE id = $2', [newUsername, userId]);
+
+    // update session
+    req.session.user.username = newUsername;
+
+    res.render('settings', { message: 'Username successfully changed.' });
+  } catch {
+    console.error('Error changing username:', error);
+    res.render('settings', { message: 'An error occurred while changing your username.'});
+  }
+});
+
+app.post('/change-email', async (req, res) => {
+  if(!req.session.user) {
+    return res.redirect('/login'); // redirect to login if not logged in
+  }
+
+  try{
+    const userId = req.session.user.id;
+    const newEmail = req.body['new-email'];
+
+    // update email in database
+    await db.none('UPDATE users SET email = $1 WHERE id = $2', [newEmail, userId]);
+
+    // update session
+    req.session.user.email = newEmail;
+
+    res.render('settings', { message: 'Email successfully changed.' });
+  } catch {
+    console.error('Error changing email:', error);
+    res.render('settings', { message: 'An error occurred while changing your email.'});
+  }
+});
+
+app.post('/change-password', async (req, res) => {
+  if(!req.session.user) {
+    return res.redirect('/login'); // redirect to login if not logged in
+  }
+
+  const newPassword = req.body['new-password'];
+  const confirmNewPassword = req.body['confirm-new-password'];
+
+  // Check if the new password and confirmation match
+  if (newPassword !== confirmNewPassword) {
+    return res.render('settings', { message: 'Passwords do not match.' });
+  }
+
+  try{
+    const userId = req.session.user.id;
+    
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // update password in database
+    await db.none('UPDATE users SET password = $1 WHERE id = $2', [hashedPassword, userId]);
+
+    res.render('settings', { message: 'Password successfully changed.' });
+  } catch {
+    console.error('Error changing password:', error);
+    res.render('settings', { message: 'An error occurred while changing your password.'});
+  }
+});
+
 // for lab 11 test cases
 app.get('/welcome', (req, res) => {
   res.status(200).json({
