@@ -33,14 +33,14 @@ const db = pgp(dbConfig);
 
 // test your database
 db.connect()
-  .then(obj => {
-    console.log('Database connection successful'); // you can view this message in the docker compose logs
-    obj.done(); // success, release the connection;
-  })
-  .catch(error => {
-    console.log('ERROR:', error.message || error);
-  });
-
+    .then(obj => {
+        console.log('Database connection successful'); // you can view this message in the docker compose logs
+        obj.done(); // success, release the connection;
+    })
+    .catch(error => {
+        console.log('ERROR:', error.message || error);
+    });
+/*
 const createTable = async () => {
   try {
     await db.none(`
@@ -51,24 +51,53 @@ const createTable = async () => {
                   password VARCHAR(100) NOT NULL
               );
           `);
-    console.log("Table 'users' created successfully.");
-
-    await db.none(`
-            CREATE TABLE IF NOT EXISTS "friends" (
-                user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
-                friend_id INT REFERENCES users(user_id) ON DELETE CASCADE,
-                PRIMARY KEY (user_id, friend_id)
+          console.log("Table 'users' created successfully.");
+      } catch (error) {
+          console.error("Error creating table:", error);
+      }
+      try {
+        await db.none(`
+            CREATE TABLE IF NOT EXISTS "User_ISBNs" (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER REFERENCES Users(user_id) ON DELETE CASCADE,
+                isbn VARCHAR(13) NOT NULL
             );
         `);
-    console.log("Table 'friends' created successfully.");
-  } catch (error) {
-    console.error("Error creating table:", error);
-  }
-};
+        console.log("Table 'user_isbns' created successfully.");
+    } catch (error) {
+        console.error("Error creating table:", error);
+    }
+  };
+  const insertData = async () => {
+    try {
+      await db.none(`
+        INSERT INTO "users" (username, fullname, password) 
+        VALUES ('thatguy', 'Johnny Johnathon', 'password');
+      `);
+      console.log("User data inserted successfully.");
+    } catch (error) {
+      console.error("Error inserting user data:", error);
+    }
+  
+    try {
+      await db.none(`
+        INSERT INTO "User_ISBNs" (user_id, isbn) VALUES 
+        (1, '9780143127741'),
+        (1, '9780307474278');
+      `);
+      console.log("ISBN data inserted successfully.");
+    } catch (error) {
+      console.error("Error inserting ISBN data:", error);
+    }
+  };
 
-createTable()
-  .then(() => console.log("Database setup complete"))
-  .catch(error => console.error("Database setup failed:", error));
+  
+
+  createTable()
+    .then(() => console.log("Database setup complete"))
+    .catch(error => console.error("Database setup failed:", error));
+  //insertData()
+  */
 // *****************************************************
 
 
