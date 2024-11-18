@@ -278,7 +278,7 @@ app.post('/login', async (req, res) => {
     req.session.user = user;
     req.session.save();
 
-    return res.redirect('/searchtest');
+    return res.redirect('/homepage');
 
   } catch (error) {
     console.error('Error logging in:', error);
