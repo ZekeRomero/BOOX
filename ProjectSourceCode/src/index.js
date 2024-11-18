@@ -138,6 +138,15 @@ const auth = (req, res, next) => {
   next();
 };
 // *****************************************************
+const password1 = 'password';  // Replace with the actual password
+
+bcrypt.hash(password1, 10, (err, hash) => {
+    if (err) {
+        console.error('Error hashing password:', err);
+        return;
+    }
+    console.log('Hashed password:', hash);
+});
 
 
 
