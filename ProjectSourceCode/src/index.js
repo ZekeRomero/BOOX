@@ -209,6 +209,9 @@ app.get('/book/:isbn', async (req, res) => {
   }
 });
 
+app.get('/settings', (req, res) => {
+  res.render('pages/settings');
+});
 
 app.get('/register', (req, res) => {
   res.render('pages/register');
