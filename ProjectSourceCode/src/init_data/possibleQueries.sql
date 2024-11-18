@@ -6,17 +6,6 @@ SELECT book_name, year_of_release, author
 /*put whatever variable you're getting out of the search bar in between the % */
     /* make that input upper case */
 
-SELECT book_name
-    FROM book bb
-    JOIN reviews rv
-    ON bb.book_id = rv.book_id
-    WHERE review_id = /* specific review_id of the review*/ 
-
-SELECT author
-    FROM book bb
-    JOIN reviews rv
-    ON bb.book_id = rv.book_id
-    WHERE review_id = /* specific review_id of the review*/ 
 
 /* Listing out all collections of a user */
 SELECT shelf_name 

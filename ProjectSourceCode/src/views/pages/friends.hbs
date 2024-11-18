@@ -1,0 +1,21 @@
+<!-- views/pages/friends.hbs -->
+<h2>Friends List</h2>
+
+<ul>
+  {{#each friends}} <!--hndlebars template loop, accesses friends array from BE  -->
+
+    <li>{{this.fullname}} ({{this.username}})</li> <!--  list user-->
+  {{else}}
+    <p>No friends added yet.</p>
+  {{/each}}
+</ul>
+
+<h3>Add a Friend</h3>
+<form action="/friends/add" method="POST"> <!-- POST request to add a user -->
+  <input type="text" name="username" placeholder="Enter username" required>
+  <button type="submit">Add Friend</button>
+</form>
+
+{{#if message}}
+  <p>{{message}}</p>
+{{/if}}
