@@ -379,7 +379,9 @@ app.post('/login', async (req, res) => {
   }
 });
 
-
+app.get('/account', auth,(req, res) => {
+  res.render('pages/account');
+});
 
 app.get('/reviews', auth, (req, res) => {
   const taken = req.query.taken;
@@ -552,14 +554,9 @@ app.get('/logout', (req, res) => {
 
 app.get('/collections', (req, res) => {
   const genres = ['Horror', 'Comedy', 'Romance', 'Sci-Fi', 'Fantasy', 'Mystery']
-  res.render('collections', { genres })
+  res.render('pages/collections', { genres })
 
-})
-
-
-
-
-
+});
 
 
 

@@ -6,27 +6,45 @@
   <title>Homepage</title>
 </head>
 <body>
-  <div class="container mt-4">
-    <h1>Welcome!</h1>
-    <p>We're glad to have you here.</p>
-    <h2>Your Favorites:</h2>
-    {{#if books.length}}
-      <ul>
-        {{#each books}}
-          <li>
-            <a href="/book/{{this.isbn}}">
-              <strong>{{this.title}}</strong><br>
-              <strong>ISBN:</strong> {{this.isbn}}<br>
-              {{#if this.coverLink}}
-                <img src="{{this.coverLink}}" alt="Cover image of {{this.title}}" width="100"><br>
-              {{/if}}
-            </a>
-          </li>
-        {{/each}}
-      </ul>
-    {{else}}
-      <p>You have no favorites yet.</p>
-    {{/if}}
+  <div class="container mt-5">
+    <!-- Welcome Section -->
+    <div class="text-center mb-4">
+      <h1 class="display-4">Welcome!</h1>
+      <p class="lead">We're delighted to have you here. Explore your favorites below.</p>
+    </div>
+
+    <!-- Favorites Section -->
+    <div class="favorites-section">
+      <h2 class="mb-4">Your Favorites</h2>
+      
+      {{#if books.length}}
+        <div class="row">
+          {{#each books}}
+            <div class="col-md-4 mb-4">
+              <div class="card h-100 shadow-sm">
+                <a href="/book/{{this.isbn}}" class="text-decoration-none text-dark">
+                  {{#if this.coverLink}}
+                    <img 
+                      src="{{this.coverLink}}" 
+                      alt="Cover image of {{this.title}}" 
+                      class="card-img-top" 
+                      style="height: 200px; object-fit: cover;">
+                  {{/if}}
+                  <div class="card-body">
+                    <h5 class="card-title">{{this.title}}</h5>
+                    <p class="card-text">
+                      <strong>ISBN:</strong> {{this.isbn}}
+                    </p>
+                  </div>
+                </a>
+              </div>
+            </div>
+          {{/each}}
+        </div>
+      {{else}}
+        <p class="text-muted">You have no favorites yet. Start exploring to add some!</p>
+      {{/if}}
+    </div>
   </div>
 </body>
 </html>
