@@ -5,9 +5,20 @@ CREATE TABLE users (
   password VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE User_ISBNs (
+CREATE TABLE isbns (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES Users(user_id) ON DELETE CASCADE,
-    isbn VARCHAR(13) NOT NULL
+    book_isbn VARCHAR(13) NOT NULL,
+    book_name VARCHAR(100) NOT NULL
 );
+
+CREATE TABLE users_to_isbns (
+    user_id INT NOT NULL,
+    isbn_id INT NOT NULL
+);
+
+CREATE TABLE user_collections (
+    user_id INT NOT NULL,
+    store_type INT NOT NULL,
+    book_isbn VARCHAR(13) NOT NULL
+)
 
