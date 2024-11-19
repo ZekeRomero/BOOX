@@ -348,35 +348,37 @@ app.get('/login', (req, res) => {
 
 //ogin
 app.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password } = req.body; // Extract username and password from the request body
 
   try {
-
+    // Query the database for the user with the given username
     const userQuery = 'SELECT * FROM users WHERE username = $1';
     const user = await db.oneOrNone(userQuery, [username]);
 
+    // If no user is found, render login.hbs with an error message
     if (!user) {
-      return res.redirect('/register');
+      return res.render('pages/login', { message: 'User not found. Please register first.' });
     }
 
-
+    // Compare the provided password with the stored hashed password
     const match = await bcrypt.compare(password, user.password);
 
+    // If the passwords don't match, render login.hbs with an error message
     if (!match) {
       return res.render('pages/login', { message: 'Incorrect username or password.' });
     }
 
-
-    req.session.user ={ id: user.userid, username: user.username };
-    req.session.save();
-
-    return res.redirect('/homepage');
-
+    // If authentication succeeds, save the user session and redirect to the homepage
+    req.session.user = { id: user.userid, username: user.username }; // Save user info in the session
+    req.session.save(); // Ensure the session is saved
+    return res.redirect('/homepage'); // Redirect to the homepage
   } catch (error) {
+    
     console.error('Error logging in:', error);
     return res.render('pages/login', { message: 'An error occurred, please try again.' });
   }
 });
+
 
 
 app.get('/reviews', auth, (req, res) => {

@@ -15,6 +15,14 @@
         <input type="username" id="username" name="username" class="form-control" required>
         <h2>Password</h2>
         <input type="password" id="password" name="password" class="form-control" required>
+
+        <!-- Error message display block -->
+        {{#if message}}
+          <div class="alert alert-danger mt-3" role="alert">
+            {{message}}
+          </div>
+        {{/if}}
+
         <p>Don't have an account? <a href="/register">Register Here.</a></p>
       </div>
       <button type="submit" class="btn btn-primary">Login</button>
@@ -22,4 +30,3 @@
   </div>
 </body>
 </html>
-
