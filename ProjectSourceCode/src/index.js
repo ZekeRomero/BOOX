@@ -181,17 +181,50 @@ app.get('/searchtest', async (req, res) => {
     res.send('<h1>Error fetching book data. Please try again later.</h1>');
   }
 });
+app.post('/assign-fav', async (req, res) => {
+  const gottenisbn = req.body.isbn;
+  try {
+    console.log("hello");
+
+    // Ensure user data is present in the session
+    if (!req.session.user) {
+      return res.status(401).send("Unauthorized: No user logged in");
+    }
+
+    const userName = req.session.user.username; // `id` should map to the user's `user_id` in the database
+    console.log(userName);
+    console.log(gottenisbn);
+    const userQuery = 'SELECT user_id FROM users WHERE username = $1';
+    const result = await db.oneOrNone(userQuery, [userName]);
+    const userId = result ? result.user_id : null; // Safely extract the user_id
+    console.log(userId);
+    await db.none(
+      `
+      INSERT INTO "user_collections" (user_id, store_type, book_isbn) 
+      VALUES ($1, $2, $3)
+      `,
+      [userId, 1, gottenisbn]
+    );
+    console.log("Data inserted successfully.");
+    res.redirect('/homepage');
+
+  } catch (error) {
+    console.error("Error inserting data:", error);
+    res.status(500).send("An error occurred while assigning the ISBN.");
+  }
+});
 
 
 app.get('/book/:isbn', async (req, res) => {
   const isbn = req.params.isbn;
+  let book;
 
   try {
     const response = await axios.get(`https://api2.isbndb.com/books/${isbn}`, {
       headers: { 'Authorization': "56937_dcb1ace02f9d3be8f6440ffbe1882eca" }
     });
 
-    const book = response.data.books[0]; // Assuming the API returns an array with one book per ISBN
+     book = response.data.books[0]; // Assuming the API returns an array with one book per ISBN
     const bookDetails = {
       title: book.title || 'N/A',
       author: book.authors ? book.authors.join(', ') : 'N/A',
@@ -201,6 +234,7 @@ app.get('/book/:isbn', async (req, res) => {
       subject: book.subjects ? book.subjects.join(', ') : 'N/A',
       coverLink: book.image || ''
     };
+    
 
     res.render('pages/bookDetails', { book: bookDetails });
   } catch (error) {
@@ -249,9 +283,65 @@ app.post('/register', async (req, res) => {
   }
 });
 
-app.get('/homepage', auth, (req, res) => {
-  res.render('pages/homepage');
+app.get('/homepage', async (req, res) => {
+  try {
+    // Ensure user data is present in the session
+    if (!req.session.user) {
+      return res.redirect('/login');
+    }
+
+    const userName = req.session.user.username;
+    const userQuery = 'SELECT user_id FROM users WHERE username = $1';
+    const result = await db.oneOrNone(userQuery, [userName]);
+    const userId = result ? result.user_id : null;
+
+    if (!userId) {
+      return res.status(400).send("User not found.");
+    }
+
+    // Fetch the user's favorited ISBNs
+    const favoritesQuery = `
+      SELECT book_isbn 
+      FROM user_collections 
+      WHERE user_id = $1 AND store_type = 1
+    `;
+    const favoritedBooks = await db.any(favoritesQuery, [userId]);
+
+    if (favoritedBooks.length === 0) {
+      return res.render('pages/homepage', { books: [] });
+    }
+
+    // Fetch book details from the API for each ISBN
+    const bookDetails = await Promise.all(
+      favoritedBooks.map(async (fav) => {
+        try {
+          const response = await axios.get(`https://api2.isbndb.com/books/${fav.book_isbn}`, {
+            headers: { 'Authorization': "56937_dcb1ace02f9d3be8f6440ffbe1882eca" }
+          });
+          const book = response.data.books[0]; // Assuming API returns an array
+          return {
+            title: book.title || 'N/A',
+            isbn: book.isbn || 'N/A',
+            coverLink: book.image || ''
+          };
+        } catch (error) {
+          console.error(`Error fetching details for ISBN ${fav.book_isbn}:`, error);
+          return null; // Handle cases where book details couldn't be fetched
+        }
+      })
+    );
+
+    const filteredBooks = bookDetails.filter((book) => book !== null);
+
+    // Render the homepage with the detailed book data
+    res.render('pages/homepage', { books: filteredBooks });
+  } catch (error) {
+    console.error("Error fetching favorites:", error);
+    res.status(500).send("An error occurred while fetching your favorites.");
+  }
 });
+
+
 
 app.get('/login', (req, res) => {
   res.render('pages/login');
@@ -278,7 +368,7 @@ app.post('/login', async (req, res) => {
     }
 
 
-    req.session.user = user;
+    req.session.user ={ id: user.userid, username: user.username };
     req.session.save();
 
     return res.redirect('/homepage');

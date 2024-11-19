@@ -1,8 +1,5 @@
-
-INSERT INTO users (user_id, username, fullname, password)
-VALUES 
-(1, 'thatguy', 'Johnny Johnathon', '$2a$10$sexsvH3pYFolIBbcK7uT0uCRE4ABSpF4./FndO/B/o73o2KWLRD/.');
-
+INSERT INTO users (username, fullname, password)
+VALUES ('thatguy', 'Johnny Johnathon', '$2a$10$sexsvH3pYFolIBbcK7uT0uCRE4ABSpF4./FndO/B/o73o2KWLRD/.');
 
 INSERT INTO isbns (id, book_isbn, book_name)
 VALUES

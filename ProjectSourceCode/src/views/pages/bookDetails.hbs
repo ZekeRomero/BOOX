@@ -11,6 +11,10 @@
     <strong>ISBN:</strong> {{book.isbn}}<br>
     <strong>Publisher:</strong> {{book.publisher}}<br>
     <strong>Subject(s):</strong> {{book.subject}}<br>
+    <form method="POST" action="/assign-fav">
+            <input type="hidden" id="isbn" name="isbn" value="{{book.isbn}}">
+            <button type="submit">Add to favorites</button>
+          </form>
     <a href="/searchtest?query={{book.title}}">Back to search results</a>
   </body>
 </html>

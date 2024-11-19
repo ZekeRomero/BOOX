@@ -1,10 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
-
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homepage</title>
+</head>
+<body>
   <div class="container mt-4">
     <h1>Welcome!</h1>
     <p>We're glad to have you here.</p>
+    <h2>Your Favorites:</h2>
+    {{#if books.length}}
+      <ul>
+        {{#each books}}
+          <li>
+            <a href="/book/{{this.isbn}}">
+              <strong>{{this.title}}</strong><br>
+              <strong>ISBN:</strong> {{this.isbn}}<br>
+              {{#if this.coverLink}}
+                <img src="{{this.coverLink}}" alt="Cover image of {{this.title}}" width="100"><br>
+              {{/if}}
+            </a>
+          </li>
+        {{/each}}
+      </ul>
+    {{else}}
+      <p>You have no favorites yet.</p>
+    {{/if}}
   </div>
-
 </body>
 </html>

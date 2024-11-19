@@ -11,8 +11,15 @@ CREATE TABLE isbns (
     book_name VARCHAR(100) NOT NULL
 );
 
+
 CREATE TABLE users_to_isbns (
     user_id INT NOT NULL,
     isbn_id INT NOT NULL
 );
+
+CREATE TABLE user_collections (
+    user_id INT NOT NULL,
+    store_type INT NOT NULL,
+    book_isbn VARCHAR(13) NOT NULL
+)
 
