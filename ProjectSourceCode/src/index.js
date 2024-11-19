@@ -256,32 +256,31 @@ app.get('/register', (req, res) => {
 app.post('/register', async (req, res) => {
   const { username, fullname, password, confirmPassword } = req.body;
 
-  //Check if passwords match
+  // Check if passwords match
   if (password !== confirmPassword) {
-      return res.redirect('/register?message=Passwords do not match');
+    return res.render('pages/register', { message: 'Passwords do not match.' });
   }
 
   try {
-
-    //Check if the username already exists in the database
+    // Check if the username already exists in the database
     const existingUser = await db.oneOrNone('SELECT * FROM users WHERE username = $1', [username]);
     if (existingUser) {
       console.log('Username already exists');
-      return res.redirect('/register');
+      return res.render('pages/register', { message: 'Username already exists.' });
     }
 
-    //Hash the password and insert the new user into the database
+    // Hash the password and insert the new user into the database
     const hashedPassword = await bcrypt.hash(password, 10);
     const insertQuery = `INSERT INTO users (username, fullname, password) VALUES ($1, $2, $3)`;
     await db.none(insertQuery, [username, fullname, hashedPassword]);
 
-
-      res.redirect('/login');
+    res.redirect('/login');
   } catch (error) {
-      console.error('Error registering user:', error);
-      res.redirect('/register?message=An error occurred. Please try again.');
+    console.error('Error registering user:', error);
+    res.render('pages/register', { message: 'An error occurred. Please try again.' });
   }
 });
+
 
 app.get('/homepage', async (req, res) => {
   try {
