@@ -9,9 +9,9 @@
   <table class="table">
     <thead>
       <tr>
-        <!-- Names of the table columns -->
         <th>Review ID</th>
         <th>Book Name</th>
+        <th>Author</th>
         <th>Rating</th>
         <th>Action</th>
       </tr>
@@ -21,7 +21,7 @@
         <tr>
           <td>{{review_id}}</td>
           <td>{{book_name}}</td>
-
+          <td>{{author}}</td>
           <td>{{rating}}</td>
           <td>
             <form action="/reviews/add" method="POST">
@@ -31,6 +31,28 @@
               {{else}}
                 <button type="submit" class="btn btn-primary">Add</button>
               {{/if}}
+            </form>
+          </td>
+        </tr>
+        
+        <!-- Comments Section -->
+        <tr>
+          <td colspan="5">
+            <h5>Comments:</h5>
+            <ul>
+              {{#each comments}}
+                <li>
+                  <strong>{{username}}:</strong> {{comment}} <small>({{created_at}})</small>
+                </li>
+              {{/each}}
+            </ul>
+
+            <!-- Add Comment Form -->
+            <form action="/reviews/{{review_id}}/comment" method="POST">
+              <div class="form-group">
+                <textarea class="form-control" name="comment" rows="3" placeholder="Add a comment..." required></textarea>
+              </div>
+              <button type="submit" class="btn btn-success">Submit Comment</button>
             </form>
           </td>
         </tr>
