@@ -1,0 +1,5 @@
+We have handlebar pages and partials setup but no package.json so we don't have a working website yet.
+Partials are implemented and docker compose file is as well
+
+Notes from TA:
+We should have functionality and a visual website by next meeting

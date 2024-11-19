@@ -1,0 +1,9 @@
+Website is running with an implemented search bar that works correctly
+navbar is working properly, ensuring users are logged in for full functionality
+register and login is working
+
+Need to implement reviews and friends functionality but we have an idea on how to
+
+TA Notes:
+Need to make more progress
+We are at about 60% and hsould be further ahead
