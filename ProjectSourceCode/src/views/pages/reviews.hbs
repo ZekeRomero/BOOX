@@ -1,42 +1,96 @@
-{{> head}}
+<!DOCTYPE html>
+<html lang="en">
 
-<!-- Table that displays book review information for a user -->
-<div class="container">
-  <h2>Book Reviews</h2>
+<head>
+  <!-- Metadata and title for the page -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Reviews</title>
+</head>
 
-  {{> message }}
+<body>
+  <!-- mkain header for the page -->
+  <h1>Book Reviews</h1>
 
-  <table class="table">
-    <thead>
-      <tr>
-        <!-- Names of the table columns -->
-        <th>Review ID</th>
-        <th>Book Name</th>
-        <th>Rating</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{#each reviews}}
-        <tr>
-          <td>{{review_id}}</td>
-          <td>{{book_name}}</td>
+  <!--form to add a new review -->
+  <form id="add-review-form">
+    <!-- input field for book name -->
+    <label for="book-name">Book Name:</label>
+    <input type="text" id="book-name" name="book-name" required><br><br>
 
-          <td>{{rating}}</td>
-          <td>
-            <form action="/reviews/add" method="POST">
-              <input type="hidden" name="review_id" value="{{review_id}}">
-              {{#if taken}}
-                <button type="submit" class="btn btn-secondary" disabled>Added</button>
-              {{else}}
-                <button type="submit" class="btn btn-primary">Add</button>
-              {{/if}}
-            </form>
-          </td>
-        </tr>
-      {{/each}}
-    </tbody>
-  </table>
-</div>
+    <!-- input field for the author's name -->
+    <label for="author">Author:</label>
+    <input type="text" id="author" name="author" required><br><br>
 
-{{> footer}}
+    <!--input field for rating limited to a range from 1 to 5 -->
+    <label for="rating">Rating (out of 5):</label>
+    <input type="number" id="rating" name="rating" min="1" max="5" required><br><br>
+
+    <!-- Textarea for writing the review message -->
+    <label for="message">Message:</label>
+    <textarea id="message" name="message" rows="4" cols="50" required></textarea><br><br>
+
+    <!-- Submit button for the form -->
+    <button type="submit">Add Review</button>
+  </form>
+
+  <!-- header for the existing reviews list -->
+  <h2>Existing Reviews:</h2>
+  <!-- unordered list to display the reviews -->
+  <ul id="reviews-list">
+    <!-- handlebars template for looping over reviews and displaying them -->
+    {{#each reviews}}
+      <li>{{book_name}} - {{rating}} stars - By {{author}}</li>
+    {{/each}}
+  </ul>
+
+  <script>
+    // Event listener for the form submission
+    document.getElementById('add-review-form').addEventListener('submit', async (e) => {
+      e.preventDefault(); //prevent the form from submitting the traditional way
+
+      const formData = new FormData(e.target); //collect form data
+      const reviewData = Object.fromEntries(formData); // Ccnvert form data into a plain object
+      console.log('Form Data:', reviewData); //log the form data for debugging
+
+      try {
+        //Send the form data as a POST request to add the review
+        const response = await fetch('/add-review', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json' //set the content type to JSON
+          },
+          body: JSON.stringify(reviewData) //convert the form data object into JSON
+        });
+
+        if (response.ok) { //Iiff the response is successful
+          alert('Review added successfully!'); //show a success message
+          fetchReviews(); // refresh the list of reviews
+        } else {
+          throw new Error('Failed to add review'); //throw an error if the request fails
+        }
+      } catch (error) {
+        console.error('Error adding review:', error); //log the error to the console
+        alert('Failed to add review. Please try again.'); //show an error message
+      }
+    });
+
+    //function to fetch and display the reviews
+    async function fetchReviews() {
+      const response = await fetch('/reviews'); //send GET request to retrieve reviews
+      if (response.ok) { //if the response is successful
+        const data = await response.json(); // Parse the JSON response
+        //update the reviews list on the page
+        document.getElementById('reviews-list').innerHTML =
+          data.map(review => <li>${review.book_name} - ${review.rating} stars - By ${review.author}</li>).join('');
+      } else {
+        console.error('Failed to fetch reviews:', response.status); // Log error if fetching reviews fails, debug doesnt work 
+      }
+    }
+
+    // Initial call to fetch reviews when the page loads
+    fetchReviews();
+  </script>
+</body>
+
+</html>
