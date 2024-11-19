@@ -1,0 +1,3 @@
+- We have an idea about how the website should work and look like
+- We have a wireframe and ISBN API key
+- Tech Stack is hbs for front end, Postgres for database, and node.js for backend
