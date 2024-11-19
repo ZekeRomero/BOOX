@@ -26,10 +26,10 @@ CREATE TABLE collections (
 CREATE TABLE reviews (
   review_id SERIAL PRIMARY KEY,
   user_id INT NOT NULL,
-  book_id INT NOT NULL,
+  id INT NOT NULL,
   rating INT NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES user (user_id), /* ensure referential integrity */ 
-  FOREIGN KEY (book_id) REFERENCES book (book_id)
+  FOREIGN KEY (user_id) REFERENCES users (user_id), /* ensure referential integrity */ 
+  FOREIGN KEY (id) REFERENCES isbns (id)
 );
 
 CREATE TABLE comments (

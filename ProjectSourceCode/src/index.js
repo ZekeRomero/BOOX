@@ -380,35 +380,37 @@ app.post('/login', async (req, res) => {
 });
 
 
-
-
-app.get('/reviews', (req, res) => {
+app.get('/reviews', auth, (req, res) => {
   const taken = req.query.taken;
 
-
   db.any(`
-    SELECT reviews.review_id, book.book_name, book.author, reviews.rating 
-    FROM reviews
-    JOIN book ON reviews.book_id = book.book_id
-    WHERE reviews.user_id = $1
+      SELECT reviews.review_id, book.book_name, book.author, reviews.rating 
+      FROM reviews
+      JOIN book ON reviews.book_id = book.book_id
+      WHERE reviews.user_id = $1
   `, [req.session.user.user_id])
-    .then(reviews => {
-      res.render('pages/reviews', {
-        username: req.session.user.username,
-        reviews,
-        action: taken ? 'delete' : 'add',
-      });
-    })
-    .catch(err => {
-      res.render('pages/reviews', {
-        reviews: [],
-        username: req.session.user.username,
-        error: true,
-        message: err.message,
-      });
-    });
-});
+  .then(async reviews => {
+      // Fetch comments for each review
+      for (let review of reviews) {
+          const comments = await db.any('SELECT comments.comment_id, comments.comment, comments.created_at, users.username FROM comments JOIN users ON comments.user_id = users.user_id WHERE review_id = $1', [review.review_id]);
+          review.comments = comments;  // Attach comments to the review object
+      }
 
+      res.render('pages/reviews', { 
+          username: req.session.user.username, 
+          reviews, 
+          action: taken ? 'delete' : 'add' 
+      });
+  })
+  .catch(err => { 
+      res.render('pages/reviews', { 
+          reviews: [], 
+          username: req.session.user.username, 
+          error: true, 
+          message: err.message 
+      });
+  });
+});
 
 app.post('/reviews/add', auth, (req, res) => {
   const book_id = parseInt(req.body.book_id); // Book ID from user input
@@ -447,7 +449,23 @@ app.post('/reviews/add', auth, (req, res) => {
     });
 });
 
+app.post('/reviews/:review_id/comment', auth, async (req, res) => {
+  const review_id = req.params.review_id;
+  const comment = req.body.comment;  // The comment text
+  const user_id = req.session.user.user_id;  // The user who is submitting the comment
 
+  try {
+      // Insert the comment into the database
+      await db.none('INSERT INTO comments (review_id, user_id, comment) VALUES ($1, $2, $3)', 
+          [review_id, user_id, comment]);
+
+      // Redirect back to the reviews page with a success message
+      res.redirect('/reviews');
+  } catch (err) {
+      console.error('Error adding comment:', err);
+      res.redirect('/reviews?error=true&message=Error adding comment');
+  }
+});
 
 
 
