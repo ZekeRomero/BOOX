@@ -7,19 +7,14 @@
   <table class="table">
     <thead>
       <tr>
-        <th>Review ID</th>
         <th>Book Name</th>
-        <th>Author</th>
         <th>Rating</th>
-        <th>Action</th>
       </tr>
     </thead>
     <tbody>
       {{#each reviews}}
         <tr>
-          <td>{{review_id}}</td>
           <td>{{book_name}}</td>
-          <td>{{author}}</td>
           <td>{{rating}}</td>
           <td>
             <form action="/reviews/add" method="POST">

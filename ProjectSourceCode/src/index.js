@@ -387,20 +387,20 @@ app.get('/reviews', auth, (req, res) => {
   const taken = req.query.taken;
 
   db.any(`
-      SELECT reviews.review_id, book.book_name, book.author, reviews.rating 
+      SELECT reviews.review_id, isbns.book_name, reviews.rating 
       FROM reviews
-      JOIN book ON reviews.book_id = book.book_id
+      JOIN book ON reviews.id = isbns.id
       WHERE reviews.user_id = $1
-  `, [req.session.user.user_id])
+  `, [req.session.users.user_id])
   .then(async reviews => {
-      // Fetch comments for each review
+      // comments for each review
       for (let review of reviews) {
           const comments = await db.any('SELECT comments.comment_id, comments.comment, comments.created_at, users.username FROM comments JOIN users ON comments.user_id = users.user_id WHERE review_id = $1', [review.review_id]);
           review.comments = comments;  // Attach comments to the review object
       }
 
       res.render('pages/reviews', { 
-          username: req.session.user.username, 
+          username: req.session.users.username, 
           reviews, 
           action: taken ? 'delete' : 'add' 
       });
@@ -408,7 +408,7 @@ app.get('/reviews', auth, (req, res) => {
   .catch(err => { 
       res.render('pages/reviews', { 
           reviews: [], 
-          username: req.session.user.username, 
+          username: req.session.users.username, 
           error: true, 
           message: err.message 
       });
@@ -418,18 +418,18 @@ app.get('/reviews', auth, (req, res) => {
 app.post('/reviews/add', auth, (req, res) => {
   const book_id = parseInt(req.body.book_id); // Book ID from user input
   const rating = parseInt(req.body.rating); // Rating from user input
-  const user_id = req.session.user.user_id; // to get the user_id from session
+  const user_id = req.session.users.user_id; // to get the user_id from session
 
   db.tx(async t => {
     //Insert the new review into the reviews table
-    await t.none('INSERT INTO reviews(book_id, rating, user_id) VALUES ($1, $2, $3);',
-      [book_id, rating, user_id]);
+    await t.none('INSERT INTO reviews(id, rating, user_id) VALUES ($1, $2, $3);',
+      [id, rating, user_id]);
 
     //Fetch reviews for the current user
     return t.any(`
-      SELECT reviews.review_id, book.book_name, book.author, reviews.rating 
+      SELECT reviews.review_id, isbns.book_name, reviews.rating 
       FROM reviews
-      JOIN book ON reviews.book_id = book.book_id
+      JOIN book ON reviews.id = isbns.id
       WHERE reviews.user_id = $1
     `, [user_id]);
   })
@@ -444,7 +444,7 @@ app.post('/reviews/add', auth, (req, res) => {
     .catch(err => {
       // If an error occurs, render the page with the error message
       res.render('pages/reviews', {
-        username: req.session.user.username,
+        username: req.session.users.username,
         reviews: [],
         error: true,
         message: err.message,
@@ -455,7 +455,7 @@ app.post('/reviews/add', auth, (req, res) => {
 app.post('/reviews/:review_id/comment', auth, async (req, res) => {
   const review_id = req.params.review_id;
   const comment = req.body.comment;  // The comment text
-  const user_id = req.session.user.user_id;  // The user who is submitting the comment
+  const user_id = req.session.users.user_id;  // The user who is submitting the comment
 
   try {
       // Insert the comment into the database
