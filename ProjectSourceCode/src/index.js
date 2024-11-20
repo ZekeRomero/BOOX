@@ -389,17 +389,21 @@ app.get('/account', auth,(req, res) => {
   res.render('pages/account');
 });
 
-
-
-
-
 app.get('/reviews', async (req, res) => {
   try {
     console.log('Attempting to fetch reviews...');
     
     const reviewsQuery = 'SELECT * FROM reviews';
-    const results = await db.any(reviewsQuery);
-    res.render('pages/reviews', { reviews: results });
+    const reviews = await db.any(reviewsQuery);
+    
+    // Fetch comments for each review
+    for (const review of reviews) {
+      const commentsQuery = 'SELECT * FROM comments WHERE review_id = $1';
+      const comments = await db.any(commentsQuery, [review.review_id]);
+      review.comments = comments;
+    }
+    
+    res.render('pages/reviews', { reviews: reviews });
   } catch (error) {
     console.error("Error fetching reviews:", error);
     res.status(500).json({
@@ -444,22 +448,23 @@ app.post('/add-review', async (req, res) => {
 
 app.post('/reviews/:review_id/comment', auth, async (req, res) => {
   const review_id = req.params.review_id;
-  const comment = req.body.comment;  // The comment text
-  const user_id = req.session.users.user_id;  // The user who is submitting the comment
+  const { comment } = req.body;
+  const user_id = req.session.user.user_id; // Get the current user's ID
 
   try {
-      // Insert the comment into the database
-      await db.none('INSERT INTO comments (review_id, user_id, comment) VALUES ($1, $2, $3)', 
-          [review_id, user_id, comment]);
+    // Insert the comment into the database
+    await db.none(
+      'INSERT INTO comments (review_id, user_id, comment) VALUES ($1, $2, $3)',
+      [review_id, user_id, comment]
+    );
 
-      // Redirect back to the reviews page with a success message
-      res.redirect('/reviews');
-  } catch (err) {
-      console.error('Error adding comment:', err);
-      res.redirect('/reviews?error=true&message=Error adding comment');
+    // Respond with a success message
+    res.json({ status: 'success' });
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    res.status(500).json({ status: 'error', message: 'Failed to add comment' });
   }
 });
-
 
 
 

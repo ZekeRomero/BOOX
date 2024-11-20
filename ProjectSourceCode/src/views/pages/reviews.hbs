@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -41,7 +40,24 @@
   <ul id="reviews-list">
     <!-- handlebars template for looping over reviews and displaying them -->
     {{#each reviews}}
-      <li>{{book_name}} - {{rating}} stars - By {{author}}</li>
+      <li>
+        <strong>{{book_name}}</strong> - {{rating}} stars - By {{author}}<br>
+        <p>{{message}}</p>
+
+        <!-- Display comments under the review -->
+        <h3>Comments:</h3>
+        <ul>
+          {{#each comments}}
+            <li>{{comment}} (By: {{user.username}})</li>
+          {{/each}}
+        </ul>
+
+        <!-- Form to add a comment -->
+        <form class="comment-form" data-review-id="{{review_id}}">
+          <textarea name="comment" placeholder="Add a comment" required></textarea><br>
+          <button type="submit">Post Comment</button>
+        </form>
+      </li>
     {{/each}}
   </ul>
 
@@ -52,7 +68,6 @@
 
       const formData = new FormData(e.target); //collect form data
       const reviewData = Object.fromEntries(formData); // Ccnvert form data into a plain object
-      console.log('Form Data:', reviewData); //log the form data for debugging
 
       try {
         //Send the form data as a POST request to add the review
@@ -83,11 +98,50 @@
         const data = await response.json(); // Parse the JSON response
         //update the reviews list on the page
         document.getElementById('reviews-list').innerHTML =
-          data.map(review => <li>${review.book_name} - ${review.rating} stars - By ${review.author}</li>).join('');
+          data.map(review => `
+          <li>
+            <strong>${review.book_name}</strong> - ${review.rating} stars - By ${review.author}
+            <p>${review.message}</p>
+            <h3>Comments:</h3>
+            <ul>
+              ${review.comments.map(comment => `<li>${comment.comment} (By: ${comment.user.username})</li>`).join('')}
+            </ul>
+            <form class="comment-form" data-review-id="${review.review_id}">
+              <textarea name="comment" placeholder="Add a comment" required></textarea><br>
+              <button type="submit">Post Comment</button>
+            </form>
+          </li>
+        `).join('');
       } else {
         console.error('Failed to fetch reviews:', response.status); // Log error if fetching reviews fails, debug doesnt work 
       }
     }
+
+    document.addEventListener('submit', async (e) => {
+      if (e.target.classList.contains('comment-form')) {
+        e.preventDefault();
+
+        const reviewId = e.target.dataset.reviewId;
+        const comment = e.target.querySelector('[name="comment"]').value;
+
+        try {
+          const response = await fetch(`/reviews/${reviewId}/comment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comment }),
+          });
+
+          if (response.ok) {
+            fetchReviews(); // Refresh the reviews with comments
+          } else {
+            alert('Failed to post comment');
+          }
+        } catch (error) {
+          console.error('Error posting comment:', error);
+          alert('Failed to post comment. Please try again.');
+        }
+      }
+    });
 
     // Initial call to fetch reviews when the page loads
     fetchReviews();
