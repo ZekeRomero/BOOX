@@ -18,3 +18,10 @@ VALUES
 (1, 2),
 (1, 3),
 (1, 4);
+
+
+INSERT INTO reviews (review_id, book_name, author, rating)
+VALUES 
+('Y4:0', '1984', 'George Orwell', 4.5),
+('G1:0', 'Goodnight Moon', 'Margaret Wise Brown', 4.8),
+('L1:0', 'Little Prince', 'Antoine de Saint-Exupéry', 4.9);
