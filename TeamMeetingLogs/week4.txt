@@ -1,0 +1,3 @@
+TA notes:
+User should be able to upload their own pictures
+Make sure we are using sessions
