@@ -4,8 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  
 </head>
 <body>
   <div class="container mt-5">
@@ -15,6 +14,14 @@
         <input type="username" id="username" name="username" class="form-control" required>
         <h2>Password</h2>
         <input type="password" id="password" name="password" class="form-control" required>
+
+        <!-- Error message display block -->
+        {{#if message}}
+          <div class="alert alert-danger mt-3" role="alert">
+            {{message}}
+          </div>
+        {{/if}}
+
         <p>Don't have an account? <a href="/register">Register Here.</a></p>
       </div>
       <button type="submit" class="btn btn-primary">Login</button>
@@ -22,4 +29,3 @@
   </div>
 </body>
 </html>
-

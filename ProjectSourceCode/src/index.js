@@ -262,32 +262,31 @@ app.get('/register', (req, res) => {
 app.post('/register', async (req, res) => {
   const { username, fullname, password, confirmPassword } = req.body;
 
-  //Check if passwords match
+  // Check if passwords match
   if (password !== confirmPassword) {
-      return res.redirect('/register?message=Passwords do not match');
+    return res.render('pages/register', { message: 'Passwords do not match.' });
   }
 
   try {
-
-    //Check if the username already exists in the database
+    // Check if the username already exists in the database
     const existingUser = await db.oneOrNone('SELECT * FROM users WHERE username = $1', [username]);
     if (existingUser) {
       console.log('Username already exists');
-      return res.redirect('/register');
+      return res.render('pages/register', { message: 'Username already exists.' });
     }
 
-    //Hash the password and insert the new user into the database
+    // Hash the password and insert the new user into the database
     const hashedPassword = await bcrypt.hash(password, 10);
     const insertQuery = `INSERT INTO users (username, fullname, password) VALUES ($1, $2, $3)`;
     await db.none(insertQuery, [username, fullname, hashedPassword]);
 
-
-      res.redirect('/login');
+    res.redirect('/login');
   } catch (error) {
-      console.error('Error registering user:', error);
-      res.redirect('/register?message=An error occurred. Please try again.');
+    console.error('Error registering user:', error);
+    res.render('pages/register', { message: 'An error occurred. Please try again.' });
   }
 });
+
 
 app.get('/homepage', async (req, res) => {
   try {
@@ -355,42 +354,44 @@ app.get('/login', (req, res) => {
 
 //ogin
 app.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password } = req.body; // Extract username and password from the request body
 
   try {
-
+    // Query the database for the user with the given username
     const userQuery = 'SELECT * FROM users WHERE username = $1';
     const user = await db.oneOrNone(userQuery, [username]);
 
+    // If no user is found, render login.hbs with an error message
     if (!user) {
-      return res.redirect('/register');
+      return res.render('pages/login', { message: 'User not found. Please register first.' });
     }
 
-
+    // Compare the provided password with the stored hashed password
     const match = await bcrypt.compare(password, user.password);
 
+    // If the passwords don't match, render login.hbs with an error message
     if (!match) {
       return res.render('pages/login', { message: 'Incorrect username or password.' });
     }
 
-
-    req.session.user ={ id: user.userid, username: user.username };
-    req.session.save();
-
-    return res.redirect('/homepage');
-
+    // If authentication succeeds, save the user session and redirect to the homepage
+    req.session.user = { id: user.userid, username: user.username }; // Save user info in the session
+    req.session.save(); // Ensure the session is saved
+    return res.redirect('/homepage'); // Redirect to the homepage
   } catch (error) {
+    
     console.error('Error logging in:', error);
     return res.render('pages/login', { message: 'An error occurred, please try again.' });
   }
 });
 
-
-
-
-app.get('/', (req, res) => {
-  res.send('Welcome to the Book Review App!');
+app.get('/account', auth,(req, res) => {
+  res.render('pages/account');
 });
+
+
+
+
 
 app.get('/reviews', async (req, res) => {
   try {
@@ -436,11 +437,28 @@ app.post('/add-review', async (req, res) => {
       status: "error",
       message: "An unexpected error occurred while processing your request.",
       details: error.message || 'Please try again later.'
+
     });
   }
 });
 
+app.post('/reviews/:review_id/comment', auth, async (req, res) => {
+  const review_id = req.params.review_id;
+  const comment = req.body.comment;  // The comment text
+  const user_id = req.session.users.user_id;  // The user who is submitting the comment
 
+  try {
+      // Insert the comment into the database
+      await db.none('INSERT INTO comments (review_id, user_id, comment) VALUES ($1, $2, $3)', 
+          [review_id, user_id, comment]);
+
+      // Redirect back to the reviews page with a success message
+      res.redirect('/reviews');
+  } catch (err) {
+      console.error('Error adding comment:', err);
+      res.redirect('/reviews?error=true&message=Error adding comment');
+  }
+});
 
 
 
@@ -526,14 +544,9 @@ app.get('/logout', (req, res) => {
 
 app.get('/collections', (req, res) => {
   const genres = ['Horror', 'Comedy', 'Romance', 'Sci-Fi', 'Fantasy', 'Mystery']
-  res.render('collections', { genres })
+  res.render('pages/collections', { genres })
 
-})
-
-
-
-
-
+});
 
 
 
