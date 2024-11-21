@@ -234,6 +234,12 @@ app.get('/book/:isbn', async (req, res) => {
       subject: book.subjects ? book.subjects.join(', ') : 'N/A',
       coverLink: book.image || ''
     };
+    const userName = req.session.user.username; // `id` should map to the user's `user_id` in the database
+    const userQuery = 'SELECT user_id FROM users WHERE username = $1';
+    const result = await db.oneOrNone(userQuery, [userName]);
+    const userId = result ? result.user_id : null; // Safely extract the user_id
+    const isFavorited = await checkIfBookIsFavorited(userId, isbn); // Example function
+    bookDetails.isFavorited = isFavorited;
     
 
     res.render('pages/bookDetails', { book: bookDetails });
@@ -242,6 +248,11 @@ app.get('/book/:isbn', async (req, res) => {
     res.send('<h1>Error fetching book details. Please try again later.</h1>');
   }
 });
+async function checkIfBookIsFavorited(userId, isbn) {
+  const result = await db.query('SELECT 1 FROM user_collections WHERE user_id = $1 AND store_type = 1 AND book_isbn = $2', [userId, isbn]);
+  console.log(result.length);
+  return result.length > 0;
+};
 
 app.get('/settings', (req, res) => {
   res.render('pages/settings');
