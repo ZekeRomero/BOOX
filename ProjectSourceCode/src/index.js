@@ -29,13 +29,14 @@ const dbConfig = {
   password: process.env.POSTGRES_PASSWORD, // the password of the user account
 };
 
+
 const db = pgp(dbConfig);
 
 // test your database
 db.connect()
     .then(obj => {
-        console.log('Database connection successful'); // you can view this message in the docker compose logs
-        obj.done(); // success, release the connection;
+        console.log('Database connection successful');
+        obj.done();
     })
     .catch(error => {
         console.log('ERROR:', error.message || error);
@@ -137,7 +138,12 @@ const auth = (req, res, next) => {
   }
   next();
 };
-
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
 // *****************************************************
 const password1 = '123';  // Replace with the actual password
 
@@ -394,93 +400,82 @@ app.get('/account', auth,(req, res) => {
   res.render('pages/account');
 });
 
-app.get('/reviews', auth, (req, res) => {
-  const taken = req.query.taken;
-
-  db.any(`
-      SELECT reviews.review_id, book.book_name, book.author, reviews.rating 
-      FROM reviews
-      JOIN book ON reviews.book_id = book.book_id
-      WHERE reviews.user_id = $1
-  `, [req.session.user.user_id])
-  .then(async reviews => {
-      // Fetch comments for each review
-      for (let review of reviews) {
-          const comments = await db.any('SELECT comments.comment_id, comments.comment, comments.created_at, users.username FROM comments JOIN users ON comments.user_id = users.user_id WHERE review_id = $1', [review.review_id]);
-          review.comments = comments;  // Attach comments to the review object
-      }
-
-      res.render('pages/reviews', { 
-          username: req.session.user.username, 
-          reviews, 
-          action: taken ? 'delete' : 'add' 
-      });
-  })
-  .catch(err => { 
-      res.render('pages/reviews', { 
-          reviews: [], 
-          username: req.session.user.username, 
-          error: true, 
-          message: err.message 
-      });
-  });
+app.get('/reviews', async (req, res) => {
+  try {
+    console.log('Attempting to fetch reviews...');
+    
+    const reviewsQuery = 'SELECT * FROM reviews';
+    const reviews = await db.any(reviewsQuery);
+    
+    // Fetch comments for each review
+    for (const review of reviews) {
+      const commentsQuery = 'SELECT * FROM comments WHERE review_id = $1';
+      const comments = await db.any(commentsQuery, [review.review_id]);
+      review.comments = comments;
+    }
+    
+    res.render('pages/reviews', { reviews: reviews });
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    res.status(500).json({
+      status: "error",
+      message: "An unexpected error occurred while processing your request.",
+      details: error.message || 'Please try again later.'
+    });
+  }
 });
 
-app.post('/reviews/add', auth, (req, res) => {
-  const book_id = parseInt(req.body.book_id); // Book ID from user input
-  const rating = parseInt(req.body.rating); // Rating from user input
-  const user_id = req.session.user.user_id; // to get the user_id from session
+app.post('/add-review', async (req, res) => {
+  try {
+    const { book_name, author, rating, message } = req.body;
 
-  db.tx(async t => {
-    //Insert the new review into the reviews table
-    await t.none('INSERT INTO reviews(book_id, rating, user_id) VALUES ($1, $2, $3);',
-      [book_id, rating, user_id]);
+    // Ensure user data is present in the session
+    if (!req.session.user) {
+      return res.status(401).send("Unauthorized: No user logged in");
+    }
 
-    //Fetch reviews for the current user
-    return t.any(`
-      SELECT reviews.review_id, book.book_name, book.author, reviews.rating 
-      FROM reviews
-      JOIN book ON reviews.book_id = book.book_id
-      WHERE reviews.user_id = $1
-    `, [user_id]);
-  })
-    .then(reviews => {
-      // If successful, render the reviews page with the updated list of reviews
-      res.render('pages/reviews', {
-        username: req.session.user.username,
-        reviews,
-        message: `Successfully added review for book ID ${book_id}`,
-      });
-    })
-    .catch(err => {
-      // If an error occurs, render the page with the error message
-      res.render('pages/reviews', {
-        username: req.session.user.username,
-        reviews: [],
-        error: true,
-        message: err.message,
-      });
+    const userName = req.session.user.username; 
+    console.log(userName);
+    
+    const insertQuery = `
+      INSERT INTO reviews (review_id, book_name, author, rating, message)
+      VALUES ($1, $2, $3, $4, $5)
+    `;
+    
+    await db.none(insertQuery, [generateUUID(), book_name, author, rating, message]);
+
+    console.log("Review added successfully.");
+    res.json({ status: "success", message: "Review added successfully" });
+  } catch (error) {
+    console.error("Error adding review:", error);
+    res.status(500).json({
+      status: "error",
+      message: "An unexpected error occurred while processing your request.",
+      details: error.message || 'Please try again later.'
+
     });
+  }
 });
 
 app.post('/reviews/:review_id/comment', auth, async (req, res) => {
   const review_id = req.params.review_id;
-  const comment = req.body.comment;  // The comment text
-  const user_id = req.session.user.user_id;  // The user who is submitting the comment
+  const { comment } = req.body;
+  const user_id = req.session.user.user_id; // Get the current user's ID
 
   try {
-      // Insert the comment into the database
-      await db.none('INSERT INTO comments (review_id, user_id, comment) VALUES ($1, $2, $3)', 
-          [review_id, user_id, comment]);
+    // Insert the comment into the database
+    await db.none(
+      'INSERT INTO comments (review_id, user_id, comment) VALUES ($1, $2, $3)',
+      [review_id, user_id, comment]
+    );
 
-      // Redirect back to the reviews page with a success message
-      res.redirect('/reviews');
-  } catch (err) {
-      console.error('Error adding comment:', err);
-      res.redirect('/reviews?error=true&message=Error adding comment');
+    // Respond with a success message
+    res.json({ status: 'success' });
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    res.status(500).json({ status: 'error', message: 'Failed to add comment' });
   }
 });
-
 
 
 
