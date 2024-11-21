@@ -240,6 +240,12 @@ app.get('/book/:isbn', async (req, res) => {
       subject: book.subjects ? book.subjects.join(', ') : 'N/A',
       coverLink: book.image || ''
     };
+    const userName = req.session.user.username; // `id` should map to the user's `user_id` in the database
+    const userQuery = 'SELECT user_id FROM users WHERE username = $1';
+    const result = await db.oneOrNone(userQuery, [userName]);
+    const userId = result ? result.user_id : null; // Safely extract the user_id
+    const isFavorited = await checkIfBookIsFavorited(userId, isbn); // Example function
+    bookDetails.isFavorited = isFavorited;
     
 
     res.render('pages/bookDetails', { book: bookDetails });
@@ -248,6 +254,11 @@ app.get('/book/:isbn', async (req, res) => {
     res.send('<h1>Error fetching book details. Please try again later.</h1>');
   }
 });
+async function checkIfBookIsFavorited(userId, isbn) {
+  const result = await db.query('SELECT 1 FROM user_collections WHERE user_id = $1 AND store_type = 1 AND book_isbn = $2', [userId, isbn]);
+  console.log(result.length);
+  return result.length > 0;
+};
 
 app.get('/settings', (req, res) => {
   res.render('pages/settings');
@@ -389,17 +400,21 @@ app.get('/account', auth,(req, res) => {
   res.render('pages/account');
 });
 
-
-
-
-
 app.get('/reviews', async (req, res) => {
   try {
     console.log('Attempting to fetch reviews...');
     
     const reviewsQuery = 'SELECT * FROM reviews';
-    const results = await db.any(reviewsQuery);
-    res.render('pages/reviews', { reviews: results });
+    const reviews = await db.any(reviewsQuery);
+    
+    // Fetch comments for each review
+    for (const review of reviews) {
+      const commentsQuery = 'SELECT * FROM comments WHERE review_id = $1';
+      const comments = await db.any(commentsQuery, [review.review_id]);
+      review.comments = comments;
+    }
+    
+    res.render('pages/reviews', { reviews: reviews });
   } catch (error) {
     console.error("Error fetching reviews:", error);
     res.status(500).json({
@@ -444,22 +459,23 @@ app.post('/add-review', async (req, res) => {
 
 app.post('/reviews/:review_id/comment', auth, async (req, res) => {
   const review_id = req.params.review_id;
-  const comment = req.body.comment;  // The comment text
-  const user_id = req.session.users.user_id;  // The user who is submitting the comment
+  const { comment } = req.body;
+  const user_id = req.session.user.user_id; // Get the current user's ID
 
   try {
-      // Insert the comment into the database
-      await db.none('INSERT INTO comments (review_id, user_id, comment) VALUES ($1, $2, $3)', 
-          [review_id, user_id, comment]);
+    // Insert the comment into the database
+    await db.none(
+      'INSERT INTO comments (review_id, user_id, comment) VALUES ($1, $2, $3)',
+      [review_id, user_id, comment]
+    );
 
-      // Redirect back to the reviews page with a success message
-      res.redirect('/reviews');
-  } catch (err) {
-      console.error('Error adding comment:', err);
-      res.redirect('/reviews?error=true&message=Error adding comment');
+    // Respond with a success message
+    res.json({ status: 'success' });
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    res.status(500).json({ status: 'error', message: 'Failed to add comment' });
   }
 });
-
 
 
 
