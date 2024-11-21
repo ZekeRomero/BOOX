@@ -139,7 +139,7 @@ const auth = (req, res, next) => {
 };
 
 // *****************************************************
-const password1 = 'password';  // Replace with the actual password
+const password1 = '123';  // Replace with the actual password
 
 bcrypt.hash(password1, 10, (err, hash) => {
     if (err) {
@@ -498,23 +498,34 @@ app.use(auth);
 
 //Add a friend
 app.post('/friends/add', async (req, res) => {
-  const friendUsername = req.body.friendUsername; //Extracts the username of the friend to be added from the request body
-  const userId = req.session.user.user_id; //Retrieves the user_id from the current session, which identifies the logged-in user.
-
   try {
-    // Find friend by username
-    const friend = await db.oneOrNone('SELECT * FROM users WHERE username = $1', [friendUsername]);//searches for user, check db returns null or single name, checks again for name
 
-    if (!friend) {
-      return res.render('pages/friends', { message: 'User not found.' });//print user notfound
+    // Ensure user data is present in the session
+    if (!req.session.user) {
+      return res.status(401).send("Unauthorized: No user logged in");
     }
+    const friendUsername = req.body.username; //Extracts the username of the friend to be added from the request body
+    const userName = req.session.user.username; // `id` should map to the user's `user_id` in the database
+    const userQuery = 'SELECT user_id FROM users WHERE username = $1';
+    const result = await db.oneOrNone(userQuery, [userName]);
+    const user1Id = result ? result.user_id : null;
+    const friendQuery = 'SELECT user_id FROM users WHERE username = $1';
+    const friendresult = await db.oneOrNone(userQuery, [friendUsername]);
+    const user2Id = friendresult ? friendresult.user_id : null;
 
-    //Insert friend relationship???
-    await db.none('INSERT INTO friends(user_id, friend_id) VALUES ($1, $2)', [userId, friend.user_id]);//SQL query that inserts a record into the friends table. It creates a new relationship between the logged-in user (userId) and the found friend????
-    res.redirect('/friends');
+    await db.none(
+      `
+      INSERT INTO "friends" (user1_id, user2_id) 
+      VALUES ($1, $2)
+      `,
+      [user1Id,user2Id]
+    );
+    console.log("Friend added successfully.");
+    res.redirect('/homepage');
+
   } catch (error) {
-    console.error('Error adding friend:', error);
-    res.render('pages/friends', { message: 'Error adding friend.' });
+    console.error("Error inserting data:", error);
+    res.status(500).send("An error occurred while adding the friend");
   }
 });
 
@@ -534,22 +545,57 @@ app.post('/friends/remove', async (req, res) => { //finds friends id
 
 //view friends list
 app.get('/friends', async (req, res) => {
-  const userId = req.session.user.user_id;//retrieves userid
-
   try {
-    const friends = await db.any(`
-          SELECT users.username, users.fullname, users.user_id
-          FROM friends
-          JOIN users ON friends.friend_id = users.user_id
-          WHERE friends.user_id = $1
-      `, [userId]);//adds user,name,id to friends table. joins to friends id
+    // Ensure user data is present in the session
+    if (!req.session.user) {
+      return res.redirect('/login'); // Redirect to login if no user is logged in
+    }
 
-    res.render('pages/friends', { friends });
+    const userName = req.session.user.username;
+
+    // Get the logged-in user's ID
+    const userQuery = 'SELECT user_id FROM users WHERE username = $1';
+    const result = await db.oneOrNone(userQuery, [userName]);
+    const userId = result ? result.user_id : null;
+
+    if (!userId) {
+      return res.render('pages/friends', { friends: [], message: 'User not found.' });
+    }
+
+    // Get friends for the user
+    const friendsQuery = `
+      SELECT 
+        CASE 
+          WHEN user1_id = $1 THEN user2_id 
+          ELSE user1_id 
+        END AS friend_id
+      FROM friends
+      WHERE user1_id = $1 OR user2_id = $1
+    `;
+
+    const friends = await db.manyOrNone(friendsQuery, [userId]);
+
+    // Fetch usernames of friends
+    let friendUsernames = [];
+    if (friends.length > 0) {
+      const friendIds = friends.map(f => f.friend_id);
+      const usernamesQuery = `
+        SELECT username 
+        FROM users 
+        WHERE user_id = ANY($1::int[])
+      `;
+      friendUsernames = await db.manyOrNone(usernamesQuery, [friendIds]);
+    }
+
+    // Render the 'friends' page with the retrieved data
+    res.render('pages/friends', { friends: friendUsernames, message: null });
   } catch (error) {
-    console.error('Error fetching friends:', error);
-    res.render('pages/friends', { friends: [], message: 'Error fetching friends list.' });
+    console.error("Error fetching friends list:", error);
+    res.render('pages/friends', { friends: [], message: 'An error occurred while fetching the friends list.' });
   }
 });
+
+
 
 
 

@@ -21,4 +21,9 @@ CREATE TABLE user_collections (
     user_id INT NOT NULL,
     store_type INT NOT NULL,
     book_isbn VARCHAR(13) NOT NULL
-)
+);
+
+CREATE TABLE friends (
+    user1_id INT NOT NULL,
+    user2_id INT NOT NULL
+);
