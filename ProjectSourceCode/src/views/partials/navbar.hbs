@@ -11,7 +11,7 @@
 
         <!-- Dropdown menu -->
         <div class="dropdown">
-            <img src="{{#if user.profileImage}}{{user.profileImage}}{{else}}/static/resources/images/def_avatar.jpg{{/if}}"
+            <img src="{{#if user.profileImage}}/static/resources/images/pfp_{{user.profileImage}}.jpg{{else}}/static/resources/images/def_avatar.jpg{{/if}}"
                 alt="Profile Image" class="profile-img" id="profileDropdown" data-bs-toggle="dropdown"
                 aria-expanded="false"
                 style="cursor: pointer; width: 50px; height: 50px; object-fit: cover; clip-path: circle(38.5%);">

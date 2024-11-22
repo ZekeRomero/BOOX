@@ -1,31 +1,129 @@
 <h1>Account Settings</h1>
 
+<h2>Delete Account</h2>
+
 <form action="/delete-account" method="POST" onsubmit="return confirm('Are you sure you want to delete your account?');">
     <button type="submit">Delete Account</button>
-</form><br><br>
+</form>
+<br>
+
+<h2>Change Username</h2>
 
 <form action="/change-username" method="POST" onsubmit="return confirm('Are you sure you want to change your username?');">
     <label for="new-username">New Username:</label>
-    <input type="text" id="new-username" name="new-username" required>
+    <input type="text" id="new-username" name="new-username" required><br>
     
     <button type="submit">Change Username</button>
-</form><br><br>
+</form>
+<br>
 
-<form action="/change-email" method="POST" onsubmit="return confirm('Are you sure you want to change your email?');">
-    <label for="new-email">New Email:</label>
-    <input type="email" id="new-email" name="new-email" required>
-    
-    <button type="submit">Change Email</button>
-</form><br><br>
+<h2>Change Password</h2>
 
 <form action="/change-password" method="POST" onsubmit="return confirm('Are you sure you want to change your password?');">
     <label for="new-password">New Password:</label>
-    <input type="password" id="new-password" name="new-password" required>
+    <input type="password" id="new-password" name="new-password" required><br>
     
     <label for="confirm-new-password">Confirm Password:</label>
-    <input type="password" id="confirm-new-password" name="confirm-new-password" required>
+    <input type="password" id="confirm-new-password" name="confirm-new-password" required><br>
 
     <button type="submit">Change Password</button>
-</form><br><br>
+</form>
+<br>
 
-<button>Update Profile Picture</button>
+<h2>Update Profile Picture</h2>
+<form action="/update-profile-picture" method="POST">
+    <div class="profile-pic-flex">
+        <div class="profile-pic-option">
+            <img src="/resources/images/pfp_0.jpg" alt="Profile Picture 0" data-index="0" class="profile-pic">
+        </div>
+        <div class="profile-pic-option">
+            <img src="/resources/images/pfp_1.jpg" alt="Profile Picture 1" data-index="1" class="profile-pic">
+        </div>
+        <div class="profile-pic-option">
+            <img src="/resources/images/pfp_2.jpg" alt="Profile Picture 2" data-index="2" class="profile-pic">
+        </div>
+        <div class="profile-pic-option">
+            <img src="/resources/images/pfp_3.jpg" alt="Profile Picture 3" data-index="3" class="profile-pic">
+        </div>
+        <div class="profile-pic-option">
+            <img src="/resources/images/pfp_4.jpg" alt="Profile Picture 4" data-index="4" class="profile-pic">
+        </div>
+        <div class="profile-pic-option">
+            <img src="/resources/images/pfp_5.jpg" alt="Profile Picture 5" data-index="5" class="profile-pic">
+        </div>
+        <div class="profile-pic-option">
+            <img src="/resources/images/pfp_6.jpg" alt="Profile Picture 6" data-index="6" class="profile-pic">
+        </div>
+        <div class="profile-pic-option">
+            <img src="/resources/images/pfp_7.jpg" alt="Profile Picture 7" data-index="7" class="profile-pic">
+        </div>
+        <div class="profile-pic-option">
+            <img src="/resources/images/pfp_8.jpg" alt="Profile Picture 8" data-index="8" class="profile-pic">
+        </div>
+        <div class="profile-pic-option">
+            <img src="/resources/images/pfp_9.jpg" alt="Profile Picture 9" data-index="9" class="profile-pic">
+        </div>
+        <div class="profile-pic-option">
+            <img src="/resources/images/pfp_10.jpg" alt="Profile Picture 10" data-index="10" class="profile-pic">
+        </div>
+        <div class="profile-pic-option">
+            <img src="/resources/images/pfp_11.jpg" alt="Profile Picture 11" data-index="11" class="profile-pic">
+        </div>
+        <div class="profile-pic-option">
+            <img src="/resources/images/pfp_12.jpg" alt="Profile Picture 12" data-index="12" class="profile-pic">
+        </div>
+        <div class="profile-pic-option">
+            <img src="/resources/images/pfp_13.jpg" alt="Profile Picture 13" data-index="13" class="profile-pic">
+        </div>
+        <div class="profile-pic-option">
+            <img src="/resources/images/pfp_14.jpg" alt="Profile Picture 14" data-index="14" class="profile-pic">
+        </div>
+    </div>
+    <input type="hidden" id="selected-profile-pic" name="profileImage">
+
+    <br>
+
+    <button type="submit" id="update-profile-picture">Update Profile Picture</button>
+    <button type="submit" formaction="/reset-profile-picture">Reset to Default</button>
+</form>
+
+<br><br><br><br><br>
+
+<script>
+document.querySelectorAll('.profile-pic').forEach(function(pic) {
+    pic.addEventListener('click', function() {
+        document.querySelectorAll('.profile-pic').forEach(function(p) {
+            p.classList.remove('selected');
+        });
+        pic.classList.add('selected');
+        
+        document.getElementById('selected-profile-pic').value = pic.getAttribute('data-index');
+    });
+});
+</script>
+
+<style>
+.profile-pic-flex {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+}
+
+.profile-pic-option {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.profile-pic {
+    width: 80px;
+    height: 80px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border 0.3s;
+}
+
+.profile-pic.selected {
+    border: 2px solid #00f;
+}
+</style>
