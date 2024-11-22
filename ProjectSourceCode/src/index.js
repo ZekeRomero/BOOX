@@ -110,6 +110,7 @@ app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(bodyParser.json()); // specify the usage of JSON for parsing request body.
 app.use('/static', express.static('src'));
+app.use('/resources', express.static(path.join(__dirname, 'resources')));
 
 // initialize session variables
 app.use(
@@ -612,7 +613,135 @@ app.get('/collections', (req, res) => {
 
 });
 
+app.post('/delete-account', async (req, res) => {
+  if (!req.session.user) {
+    return res.redirect('pages/login'); // Redirect to login if not logged in
+  }
 
+  try {
+    const userId = req.session.user.user_id;
+
+    // Delete user from database
+    await db.none('DELETE FROM users WHERE user_id = $1', [userId]);
+
+    // Destroy session after account deletion
+    req.session.destroy(err => {
+        if (err) {
+            return res.render('pages/settings', { message: 'An error occurred. Please try again.' });
+        }
+
+        res.render('pages/logout', { message: 'Your account has been successfully deleted.' });
+    });
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    res.render('pages/settings', { message: 'An error occurred while deleting your account. Please try again.' });
+  }
+});
+
+app.post('/change-username', async (req, res) => {
+  if (!req.session.user) {
+    return res.redirect('pages/login'); // Redirect to login if not logged in
+  }
+
+  try {
+    const userId = req.session.user.user_id;
+    const newUsername = req.body['new-username'];
+
+    // update username in the database
+    await db.none('UPDATE users SET username = $1 WHERE user_id = $2', [newUsername, userId]);
+
+    // update session with new username
+    req.session.user.username = newUsername;
+
+    res.render('pages/settings', { message: 'Username successfully changed.' });
+  } catch (error) {
+    console.error('Error changing username:', error);
+    res.render('pages/settings', { message: 'An error occurred while changing your username. Please try again.' });
+  }
+});
+
+app.post('/change-password', async (req, res) => {
+  if (!req.session.user) {
+    return res.redirect('pages/login'); // Redirect to login if not logged in
+  }
+
+  const newPassword = req.body['new-password'];
+  const confirmNewPassword = req.body['confirm-new-password'];
+
+  // Check if new password and confirmation match
+  if (newPassword !== confirmNewPassword) {
+    return res.render('pages/settings', { message: 'Passwords do not match.' });
+  }
+
+  try {
+    const userId = req.session.user.user_id;
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password in database
+    await db.none('UPDATE users SET password = $1 WHERE user_id = $2', [hashedPassword, userId]);
+
+    res.render('pages/settings', { message: 'Password successfully changed.' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.render('pages/settings', { message: 'An error occurred while changing your password. Please try again.' });
+  }
+});
+
+app.post('/update-profile-picture', async (req, res) => {
+  if (!req.session.user) {
+      return res.redirect('pages/login');
+  }
+
+  const userId = req.session.user.user_id;
+  const newProfilePicIndex = req.body.profileImage;
+
+  try {
+      // Update profile picture in database
+      await db.none('UPDATE users SET profileImage = $1 WHERE user_id = $2', [newProfilePicIndex, userId]);
+
+      // Update session
+      req.session.user.profileImage = newProfilePicIndex;
+
+      res.render('pages/settings', { message: 'Profile picture updated successfully.' });
+  } catch (error) {
+      console.error('Error updating profile picture:', error);
+      res.render('pages/settings', { message: 'An error occurred while updating your profile picture. Please try again.' });
+  }
+});
+
+app.post('/reset-profile-picture', async (req, res) => {
+  if (!req.session.user) {
+      return res.redirect('pages/login');
+  }
+
+  const userId = req.session.user.user_id;
+
+  try {
+      // Reset profile picture in database
+      await db.none('UPDATE users SET profileImage = NULL WHERE user_id = $1', [userId]);
+
+      // Update session
+      req.session.user.profileImage = null;
+
+      res.render('pages/settings', { message: 'Profile picture reset to default.' });
+  } catch (error) {
+      console.error('Error resetting profile picture:', error);
+      res.render('pages/settings', { message: 'An error occurred while resetting your profile picture. Please try again.' });
+  }
+});
+
+app.get('/settings', (req, res) => {
+  if (!req.session.user) {
+    return res.redirect('pages/login');
+  }
+
+  res.render('pages/settings', {
+    user: req.session.user,
+    profilePics: profilePics
+  });
+});
 
 // for lab 11 test cases
 app.get('/welcome', (req, res) => {
