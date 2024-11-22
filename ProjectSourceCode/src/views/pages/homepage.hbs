@@ -4,17 +4,81 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Homepage</title>
+  <!-- Google Fonts Link -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    /* Full-screen background image */
+    .background-image {
+      background: url('../../resources/images/bookhome2.jpeg') no-repeat center center;
+      background-size: cover;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      text-align: center;
+    }
+
+    .background-image h1 {
+      font-size: 3.5rem; /* Bigger font size for the welcome message */
+      font-weight: 600;  /* Make it bolder */
+      margin-bottom: 10px;
+    }
+
+    .background-image p {
+      font-size: 1.5rem; /* Larger font for the subtext */
+      font-weight: 300;  /* Lighter weight for a sleek look */
+    }
+
+    /* White section for favorites */
+    .favorites-section {
+      background-color: white;
+      padding: 60px 0; /* Increased padding for a more spacious look */
+    }
+
+    /* Container styling */
+    .container {
+      width: 80%;
+      margin: 0 auto;
+    }
+
+    .favorites-section h2 {
+      font-size: 2.5rem; /* Larger font size for section titles */
+      font-weight: 600;
+      margin-bottom: 30px;
+    }
+
+    /* Card styles */
+    .card h5 {
+      font-size: 1.25rem; /* Slightly larger font for book titles */
+      font-weight: 500;
+    }
+
+    .card p {
+      font-size: 1rem; /* Standard size for the card's text */
+      font-weight: 400;
+    }
+  </style>
 </head>
 <body>
-  <div class="container mt-5">
-    <!-- Welcome Section -->
-    <div class="text-center mb-4">
+  <!-- Full-screen background section -->
+  <div class="background-image">
+    <div class="text-center">
       <h1 class="display-4">Welcome!</h1>
       <p class="lead">We're delighted to have you here. Explore your favorites below.</p>
     </div>
+  </div>
 
-    <!-- Favorites Section -->
-    <div class="favorites-section">
+  <!-- Favorites Section -->
+  <div class="favorites-section">
+    <div class="container">
       <h2 class="mb-4">Your Favorites</h2>
       
       {{#if books.length}}
