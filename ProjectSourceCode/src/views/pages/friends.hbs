@@ -1,21 +1,80 @@
-<!-- views/pages/friends.hbs -->
-<h2>Friends List</h2>
+<!DOCTYPE html>
+<html lang="en">
 
-<ul>
-  {{#each friends}} <!--hndlebars template loop, accesses friends array from BE  -->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Friends List</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
 
-    <li>{{this.fullname}} ({{this.username}})</li> <!--  list user-->
-  {{else}}
-    <p>No friends added yet.</p>
-  {{/each}}
-</ul>
+<body>
+  <div class="container my-5">
+    <!-- Friends List Section -->
+    <div class="card shadow">
+      <div class="card-header bg-primary text-white">
+        <h2 class="text-center">Friends List</h2>
+      </div>
+      <div class="card-body">
+        <ul class="list-group">
+          {{#each friends}}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>
+              <strong>{{this.fullname}}</strong> <em>({{this.username}})</em>
+            </span>
+          </li>
+          {{else}}
+          <p class="text-muted">No friends added yet.</p>
+          {{/each}}
+        </ul>
+      </div>
+    </div>
 
-<h3>Add a Friend</h3>
-<form action="/friends/add" method="POST"> <!-- POST request to add a user -->
-  <input type="username" name="username" placeholder="Enter username" required>
-  <button type="submit">Add Friend</button>
-</form>
+    <!-- Add Friend Section -->
+    <div class="mt-4 card shadow">
+      <div class="card-header bg-success text-white">
+        <h3 class="text-center">Add a Friend</h3>
+      </div>
+      <div class="card-body">
+        <form action="/friends/add" method="POST" class="row g-3">
+          <div class="col-9">
+            <input type="text" name="username" class="form-control" placeholder="Enter username" required>
+          </div>
+          <div class="col-3">
+            <button type="submit" class="btn btn-primary w-100">Add Friend</button>
+          </div>
+        </form>
+        {{#if message}}
+        <div class="alert alert-info mt-3">
+          {{message}}
+        </div>
+        {{/if}}
+      </div>
+    </div>
 
-{{#if message}}
-  <p>{{message}}</p>
-{{/if}}
+    <!-- Remove Friend Section -->
+    <div class="mt-4 card shadow">
+      <div class="card-header bg-danger text-white">
+        <h3 class="text-center">Remove a Friend</h3>
+      </div>
+      <div class="card-body">
+        <form action="/friends/remove" method="POST" class="row g-3">
+          <div class="col-9">
+            <input type="text" name="username" class="form-control" placeholder="Enter friend's username" required>
+          </div>
+          <div class="col-3">
+            <button type="submit" class="btn btn-danger w-100">Remove Friend</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS and Icons 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">-->
+
+</body>
+
+</html>
