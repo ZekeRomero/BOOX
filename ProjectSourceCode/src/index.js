@@ -528,16 +528,47 @@ app.post('/friends/add', async (req, res) => {
 });
 
 // Remove a friend
-app.post('/friends/remove', async (req, res) => { //finds friends id
-  const friendId = req.body.friendId;
-  const userId = req.session.user.user_id;
-
+app.post('/friends/remove', async (req, res) => {
   try {
-    await db.none('DELETE FROM friends WHERE user_id = $1 AND friend_id = $2', [userId, friendId]);//sql deletes friend and matches userid and friendid
+    // Ensure user data is present in the session
+    if (!req.session.user) {
+      return res.status(401).send("Unauthorized: No user logged in");
+    }
+
+    const friendUsername = req.body.username; // Extracts the friend's username from the request body
+    const userName = req.session.user.username; // Current logged-in user's username
+
+    // Get the logged-in user's ID
+    const userQuery = 'SELECT user_id FROM users WHERE username = $1';
+    const userResult = await db.oneOrNone(userQuery, [userName]);
+    const user1Id = userResult ? userResult.user_id : null;
+
+    // Get the friend's user ID
+    const friendQuery = 'SELECT user_id FROM users WHERE username = $1';
+    const friendResult = await db.oneOrNone(friendQuery, [friendUsername]);
+    const user2Id = friendResult ? friendResult.user_id : null;
+
+    // Ensure both user IDs exist
+    if (!user1Id || !user2Id) {
+      return res.status(400).send("Invalid username provided.");
+    }
+
+    // Remove the friend relationship
+    await db.none(
+      `
+      DELETE FROM friends 
+      WHERE (user1_id = $1 AND user2_id = $2) 
+         OR (user1_id = $2 AND user2_id = $1)
+      `,
+      [user1Id, user2Id]
+    );
+
+    console.log("Friend removed successfully.");
     res.redirect('/friends');
+
   } catch (error) {
-    console.error('Error removing friend:', error);
-    res.render('pages/friends', { message: 'Error removing friend.' });
+    console.error("Error removing friend:", error);
+    res.status(500).send("An error occurred while removing the friend");
   }
 });
 
