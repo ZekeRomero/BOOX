@@ -1,1 +1,2 @@
-
+# Ignore specific files
+init_db.sh
