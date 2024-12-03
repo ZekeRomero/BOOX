@@ -1,3 +1,13 @@
-- We have an idea about how the website should work and look like
-- We have a wireframe and ISBN API key
-- Tech Stack is hbs for front end, Postgres for database, and node.js for backend
+Minutes of the Meeting - Week 1
+
+1. Decisions Made:
+- The project will be a book sharing website that includes friends page, reviews page, and navigation bar functionality along with login/logout and homepage.
+- Tech Stack is hbs for front end, Postgres for database, and node.js for backend  
+- We've developed a wireframe and ISBN API key
+
+2. Alternative Action/Options Discussed:
+- The group also discussed doing a ticket sharing website where people can post what events they are attending and see what events their friends are attending as well
+- The group discussed alternative APIs to use
+
+3. Follow Up Items
+- The group would like to get the Nav Bar working before the next meeting so the website can be built upon after that

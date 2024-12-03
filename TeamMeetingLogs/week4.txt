@@ -1,3 +1,12 @@
-TA notes:
-User should be able to upload their own pictures
-Make sure we are using sessions
+Minutes of the Meeting - Week 4
+
+1. Decisions Made:
+- Add functionality so users can upload their own profile pictures
+- Add comment functionality to reviews and update the database
+- Fix the friends page and continue progress to make it work
+
+2. Alternative Action/Options Discussed:
+- Friends page has proved tricky, might be worth it to scrap it
+
+3. Follow Up Items
+- TA notes:User should be able to upload their own pictures and make sure we are using sessions
