@@ -1,5 +1,17 @@
-We have handlebar pages and partials setup but no package.json so we don't have a working website yet.
-Partials are implemented and docker compose file is as well
+Minutes of the Meeting - Week 2
 
-Notes from TA:
-We should have functionality and a visual website by next meeting
+1. Decisions Made:
+- Brandon will be in charge of the login page, the database, the register page, and creating an API key
+- Zeke will be in charge of partials, and docker.yaml file
+- Ayush will be in charge of the navigation bar, and friends page 
+- Charlie will be in charge of reviews page and comments 
+- Neerja will be in charge of the collections page, and pages for each collection
+- Ben will be in charge of the logout page, account info page, and settings page
+- Partials are implemented and docker compose file is as well
+
+2. Alternative Action/Options Discussed:
+- We discussed adding search functionality 
+
+3. Follow Up Items
+- We have handlebar pages and partials setup but no package.json so we don't have a working website yet.
+- Notes from TA: We should have functionality and a visual website by next meeting
