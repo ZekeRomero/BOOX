@@ -430,7 +430,7 @@ app.get('/reviews', async (req, res) => {
 
 app.post('/add-review', async (req, res) => {
   try {
-    const { book_name, author, rating, message } = req.body;
+    const { book_title, message } = req.body;
 
     // Ensure user data is present in the session
     if (!req.session.user) {
@@ -441,44 +441,27 @@ app.post('/add-review', async (req, res) => {
     console.log(userName);
     
     const insertQuery = `
-      INSERT INTO reviews (review_id, book_name, author, rating, message)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO reviews (review_id, book_name, message, username)
+      VALUES ($1, $2, $3, $4)
     `;
     
-    await db.none(insertQuery, [generateUUID(), book_name, author, rating, message]);
+    await db.none(insertQuery, [generateUUID(), book_title, message, userName]);
 
     console.log("Review added successfully.");
-    res.json({ status: "success", message: "Review added successfully" });
+    res.redirect('/reviews'); // Redirect to reviews page to see the newly added review
   } catch (error) {
     console.error("Error adding review:", error);
     res.status(500).json({
       status: "error",
       message: "An unexpected error occurred while processing your request.",
       details: error.message || 'Please try again later.'
-
     });
   }
 });
 
-app.post('/reviews/:review_id/comment', auth, async (req, res) => {
-  const review_id = req.params.review_id;
-  const { comment } = req.body;
-  const user_id = req.session.user.user_id; // Get the current user's ID
 
-  try {
-    // Insert the comment into the database
-    await db.none(
-      'INSERT INTO comments (review_id, user_id, comment) VALUES ($1, $2, $3)',
-      [review_id, user_id, comment]
-    );
 
-    // Respond with a success message
-    res.json({ status: 'success' });
-  } catch (error) {
-    console.error('Error adding comment:', error);
-    res.status(500).json({ status: 'error', message: 'Failed to add comment' });
-  }
-});
+
 
 
 
