@@ -577,7 +577,37 @@ app.post('/add-review', async (req, res) => {
   }
 });
 
+app.post('/add-comment/:review_id', async (req, res) => {
+  try {
+    const { comment } = req.body;
+    const reviewId = req.params.review_id;
 
+    // Ensure user data is present in the session
+    if (!req.session.user) {
+      return res.status(401).send("Unauthorized: No user logged in");
+    }
+
+    const userIdQuery = 'SELECT user_id FROM users WHERE username = $1';
+    const userResult = await db.oneOrNone(userIdQuery, [req.session.user.username]);
+    if (!userResult) {
+      return res.status(404).send('User not found');
+    }
+
+    const userId = userResult.user_id;
+
+    // Insert the comment into the database
+    await db.none(
+      'INSERT INTO comments (review_id, user_id, comment) VALUES ($1, $2, $3)',
+      [reviewId, userId, comment]
+    );
+
+    // Redirect to the reviews page
+    res.redirect('/reviews');
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    res.status(500).send("An error occurred while posting your comment.");
+  }
+});
 
 
 

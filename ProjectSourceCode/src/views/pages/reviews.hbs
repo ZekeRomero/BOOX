@@ -28,6 +28,29 @@
           <h5>{{book_name}}</h5>
           <p>{{message}}</p>
           <p><strong>Posted by:</strong> {{username}}</p>
+
+          <div class="comments">
+            <ul class="list-group">
+              {{#each comments}}
+              <li class="list-group-item">
+                <p>{{comment}}</p>
+              </li>
+              {{else}}
+              <li class="list-group-item">
+                <em>No comments yet.</em>
+              </li>
+              {{/each}}
+            </ul>
+          </div>
+
+          <!-- Add Comment Form -->
+          <form action="/add-comment/{{review_id}}" method="POST">
+            <div class="mb-3">
+              <textarea class="form-control" name="comment" placeholder="Add a comment..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-secondary">Post Comment</button>
+          </form>
+
         </li>
         {{else}}
         <li class="list-group-item text-center">

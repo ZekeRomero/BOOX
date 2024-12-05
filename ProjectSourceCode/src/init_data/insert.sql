@@ -29,8 +29,18 @@ VALUES
 
 INSERT INTO reviews (review_id, book_name, message, username)
 VALUES
-  ('5', 'The Great Gatsby', 'A timeless classic that explores themes of love, wealth, and the American Dream. Highly recommend!', 'otherguy'),
+('5', 'The Great Gatsby', 'A timeless classic that explores themes of love, wealth, and the American Dream. Highly recommend!', 'otherguy'),
   ('4', 'To Kill a Mockingbird', 'An incredible story of racial injustice and moral growth. A must-read for everyone.', 'otherguy'),
   ('3', '1984', 'A chilling dystopian novel that explores the dangers of totalitarianism. Very thought-provoking.', 'otherguy'),
   ('2', 'Moby-Dick', 'A complex and philosophical story of obsession. Not for everyone, but worth the read for those who enjoy deep themes.', 'otherguy'),
   ('1', 'Pride and Prejudice', 'A brilliant romance novel that also critiques societal norms and class issues. A favorite of mine.', 'otherguy');
+ 
+ 
+INSERT INTO comments (comment_id, review_id, user_id, comment)
+VALUES
+  (1, '5', 1, 'Agreed. The book is timeless.'),
+  (2, '4', 1, 'Total must-read!'),
+  (3, '3', 1, 'It was almost too thought provoking for me.'),
+  (4, '2', 1, 'Lots of metaphors regarding the whale.'),
+  (5, '1', 1, 'Favorite of mine, as well!');
+

@@ -27,6 +27,7 @@ CREATE TABLE friends (
     user1_id INT NOT NULL,
     user2_id INT NOT NULL
 );
+
 CREATE TABLE IF NOT EXISTS reviews (
     review_id VARCHAR(36) PRIMARY KEY,
     book_name VARCHAR(255) NOT NULL,
