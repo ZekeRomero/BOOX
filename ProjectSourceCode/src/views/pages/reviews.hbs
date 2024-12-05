@@ -2,151 +2,66 @@
 <html lang="en">
 
 <head>
-  <!-- Metadata and title for the page -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Book Reviews</title>
+  <title>Reviews</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
 </head>
 
 <body>
-  <!-- mkain header for the page -->
-  <h1>Book Reviews</h1>
+  <div class="container mt-5">
+    <!-- Page Header -->
+    <h1 class="text-center mb-4">Book Reviews</h1>
 
-  <!--form to add a new review -->
-  <form id="add-review-form">
-    <!-- input field for book name -->
-    <label for="book-name">Book Name:</label>
-    <input type="text" id="book-name" name="book-name" required><br><br>
+    <!-- Add Review Button -->
+    <div class="d-flex justify-content-center mb-4">
+      <button id="addReviewBtn" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addReviewModal">Add
+        Review</button>
+    </div>
 
-    <!-- input field for the author's name -->
-    <label for="author">Author:</label>
-    <input type="text" id="author" name="author" required><br><br>
+    <!-- Reviews List -->
+    <div class="reviews-list">
+      <ul class="list-group">
+        {{#each reviews}}
+        <li class="list-group-item">
+          <h5>{{book_name}}</h5>
+          <p>{{message}}</p>
+          <p><strong>Posted by:</strong> {{username}}</p>
+        </li>
+        {{else}}
+        <li class="list-group-item text-center">
+          <em>No reviews yet.</em>
+        </li>
+        {{/each}}
+      </ul>
+    </div>
 
-    <!--input field for rating limited to a range from 1 to 5 -->
-    <label for="rating">Rating (out of 5):</label>
-    <input type="number" id="rating" name="rating" min="1" max="5" required><br><br>
 
-    <!-- Textarea for writing the review message -->
-    <label for="message">Message:</label>
-    <textarea id="message" name="message" rows="4" cols="50" required></textarea><br><br>
-
-    <!-- Submit button for the form -->
-    <button type="submit">Add Review</button>
-  </form>
-
-  <!-- header for the existing reviews list -->
-  <h2>Existing Reviews:</h2>
-  <!-- unordered list to display the reviews -->
-  <ul id="reviews-list">
-    <!-- handlebars template for looping over reviews and displaying them -->
-    {{#each reviews}}
-      <li>
-        <strong>{{book_name}}</strong> - {{rating}} stars - By {{author}}<br>
-        <p>{{message}}</p>
-
-        <!-- Display comments under the review -->
-        <h3>Comments:</h3>
-        <ul>
-          {{#each comments}}
-            <li>{{comment}} (By: {{user.username}})</li>
-          {{/each}}
-        </ul>
-
-        <!-- Form to add a comment -->
-        <form class="comment-form" data-review-id="{{review_id}}">
-          <textarea name="comment" placeholder="Add a comment" required></textarea><br>
-          <button type="submit">Post Comment</button>
+  <!-- Add Review Modal -->
+  <div class="modal fade" id="addReviewModal" tabindex="-1" aria-labelledby="addReviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addReviewModalLabel">Add a Review</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="/add-review" method="POST">
+          <div class="mb-3">
+            <label for="book_title" class="form-label">Book Title</label>
+            <input type="text" class="form-control" id="book_title" name="book_title" required />
+          </div>
+          <div class="mb-3">
+            <label for="message" class="form-label">Review Message</label>
+            <textarea class="form-control" id="message" name="message" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit Review</button>
         </form>
-      </li>
-    {{/each}}
-  </ul>
+      </div>
+    </div>
+  </div>
 
-  <script>
-    // Event listener for the form submission
-    document.getElementById('add-review-form').addEventListener('submit', async (e) => {
-      e.preventDefault(); //prevent the form from submitting the traditional way
-
-      const formData = new FormData(e.target); //collect form data
-      const reviewData = Object.fromEntries(formData); // Ccnvert form data into a plain object
-
-      try {
-        //Send the form data as a POST request to add the review
-        const response = await fetch('/add-review', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json' //set the content type to JSON
-          },
-          body: JSON.stringify(reviewData) //convert the form data object into JSON
-        });
-
-        if (response.ok) { //Iiff the response is successful
-          alert('Review added successfully!'); //show a success message
-          fetchReviews(); // refresh the list of reviews
-        } else {
-          throw new Error('Failed to add review'); //throw an error if the request fails
-        }
-      } catch (error) {
-        console.error('Error adding review:', error); //log the error to the console
-        alert('Failed to add review. Please try again.'); //show an error message
-      }
-    });
-
-    //function to fetch and display the reviews
-    async function fetchReviews() {
-      const response = await fetch('/reviews'); //send GET request to retrieve reviews
-      if (response.ok) { //if the response is successful
-        const data = await response.json(); // Parse the JSON response
-        //update the reviews list on the page
-        document.getElementById('reviews-list').innerHTML =
-          data.map(review => `
-          <li>
-            <strong>${review.book_name}</strong> - ${review.rating} stars - By ${review.author}
-            <p>${review.message}</p>
-            <h3>Comments:</h3>
-            <ul>
-              ${review.comments.map(comment => `<li>${comment.comment} (By: ${comment.user.username})</li>`).join('')}
-            </ul>
-            <form class="comment-form" data-review-id="${review.review_id}">
-              <textarea name="comment" placeholder="Add a comment" required></textarea><br>
-              <button type="submit">Post Comment</button>
-            </form>
-          </li>
-        `).join('');
-      } else {
-        console.error('Failed to fetch reviews:', response.status); // Log error if fetching reviews fails, debug doesnt work 
-      }
-    }
-
-    document.addEventListener('submit', async (e) => {
-      if (e.target.classList.contains('comment-form')) {
-        e.preventDefault();
-
-        const reviewId = e.target.dataset.reviewId;
-        const comment = e.target.querySelector('[name="comment"]').value;
-
-        try {
-          const response = await fetch(`/reviews/${reviewId}/comment`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ comment }),
-          });
-
-          if (response.ok) {
-            fetchReviews(); // Refresh the reviews with comments
-          } else {
-            alert('Failed to post comment');
-          }
-        } catch (error) {
-          console.error('Error posting comment:', error);
-          alert('Failed to post comment. Please try again.');
-        }
-      }
-    });
-
-    // Initial call to fetch reviews when the page loads
-    fetchReviews();
-  </script>
+  <!-- Bootstrap JS -->
 </body>
 
 </html>
-

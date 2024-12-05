@@ -1,5 +1,10 @@
 INSERT INTO users (username, fullname, password)
 VALUES ('thatguy', 'Johnny Johnathon', '$2a$10$sexsvH3pYFolIBbcK7uT0uCRE4ABSpF4./FndO/B/o73o2KWLRD/.'), --password is password
+('john_doe', 'John Doe', '$2a$10$sexsvH3pYFolIBbcK7uT0uCRE4ABSpF4./FndO/B/o73o2KWLRD/.'),
+('jane_smith', 'Jane Smith', '$2a$10$sexsvH3pYFolIBbcK7uT0uCRE4ABSpF4./FndO/B/o73o2KWLRD/.'),
+('alice_williams', 'Alice Williams', '$2a$10$sexsvH3pYFolIBbcK7uT0uCRE4ABSpF4./FndO/B/o73o2KWLRD/.'),
+('bob_brown', 'Bob Brown', '$2a$10$sexsvH3pYFolIBbcK7uT0uCRE4ABSpF4./FndO/B/o73o2KWLRD/.'),
+('susan_jones', 'Susan Jones', '$2a$10$sexsvH3pYFolIBbcK7uT0uCRE4ABSpF4./FndO/B/o73o2KWLRD/.'),
 ('otherguy', 'Name Name', '$2a$10$b.XhuOV5nWMw4XoAcKkDge42/2D8YuaK9zzXazfFtvLMdtMGLJ7Mi'); --password is 123
 
 
@@ -22,8 +27,10 @@ VALUES
 (1, 4);
 
 
-INSERT INTO reviews (review_id, book_name, author, rating)
-VALUES 
-('Y4:0', '1984', 'George Orwell', 4.5),
-('G1:0', 'Goodnight Moon', 'Margaret Wise Brown', 4.8),
-('L1:0', 'Little Prince', 'Antoine de Saint-Exupéry', 4.9);
+INSERT INTO reviews (review_id, book_name, message, username)
+VALUES
+  ('5', 'The Great Gatsby', 'A timeless classic that explores themes of love, wealth, and the American Dream. Highly recommend!', 'john_doe'),
+  ('4', 'To Kill a Mockingbird', 'An incredible story of racial injustice and moral growth. A must-read for everyone.', 'jane_smith'),
+  ('3', '1984', 'A chilling dystopian novel that explores the dangers of totalitarianism. Very thought-provoking.', 'alice_williams'),
+  ('2', 'Moby-Dick', 'A complex and philosophical story of obsession. Not for everyone, but worth the read for those who enjoy deep themes.', 'bob_brown'),
+  ('1', 'Pride and Prejudice', 'A brilliant romance novel that also critiques societal norms and class issues. A favorite of mine.', 'susan_jones');
