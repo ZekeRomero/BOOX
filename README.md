@@ -13,7 +13,7 @@ Team Name: Book Masters
 
 Application Description: 
 BOOX is a multi-user book-sharing platform designed to connect book lovers by creating a space for sharing, discovering, and discussing their interest in literature. Users can explore an extensive collection of books through an integrated API, giving them access to a wide range of titles. The platform allows users to view and interact with each other’s reading profiles, share recommendations, and discuss books in a community-driven environment.
-In addition to social features, BOOX lets users organize their reading experience by creating personalized collections of books. They can sort titles by genre, create reading lists for future reads, and save their favorite books for easy access. Along with sorting into collections, user are also to rate their favorite books, which includes the base rating out of 5, and a short description of their thoughts on the read. Boox is not just for individual discovery, but for fostering meaningful connections between readers who share common interests.
+In addition to social features, BOOX lets users organize their reading experience by creating personalized collections of books. They can sort titles by genre, create reading lists for future reads, and save their favorite books for easy access. Along with sorting into collections, either their favorites or future reads, user are also to rate their favorite books, which includes the base rating out of 5, and a short description of their thoughts on the read. Boox is not just for individual discovery, but for fostering meaningful connections between readers who share common interests.
 
 
 Technology Stack:
