@@ -58,8 +58,8 @@ app.use('/resources', express.static(path.join(__dirname, 'resources')));
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
-    saveUninitialized: false,
-    resave: false,
+    saveUninitialized: true,
+    resave: true,
   })
 );
 
