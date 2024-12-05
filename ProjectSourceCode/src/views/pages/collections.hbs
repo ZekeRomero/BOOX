@@ -1,6 +1,3 @@
-<!-- make basically new page entirely that will be a base html page but can present a table of the collections, then table of books in each collection
-based off api key -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,30 +5,86 @@ based off api key -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Boox Collections</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .book-card img {
+            height: 200px;
+            object-fit: cover;
+        }
+        .book-card {
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
         <h1 class="text-center mb-4">Your Collections</h1>
-        
-        <!-- Collection Buttons -->
-        <div class="row">
-            <div class="col-md-4 mb-3">
-                <a href="/collections/genre" class="btn btn-primary btn-block">Genres</a>
+
+        <!-- Favorites Section -->
+        <div class="mb-5">
+            <h2 class="text-center mb-4">Favorites</h2>
+            {{#if favorites.length}}
+            <div class="row">
+                {{#each favorites}}
+                <div class="col-md-3 book-card">
+                    <div class="card h-100 shadow-sm">
+                        <a href="/book/{{this.isbn}}" class="text-decoration-none text-dark">
+                            {{#if this.coverLink}}
+                            <img 
+                                src="{{this.coverLink}}" 
+                                alt="Cover image of {{this.title}}" 
+                                class="card-img-top">
+                            {{else}}
+                            <img 
+                                src="/path/to/placeholder.jpg" 
+                                alt="Placeholder image" 
+                                class="card-img-top">
+                            {{/if}}
+                            <div class="card-body">
+                                <h5 class="card-title">{{this.title}}</h5>
+                                <p class="card-text"><strong>ISBN:</strong> {{this.isbn}}</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                {{/each}}
             </div>
-            <div class="col-md-4 mb-3">
-                <a href="/collections/future-reads" class="btn btn-success btn-block">Future Reads</a>
-            </div>
-            <div class="col-md-4 mb-3">
-                <a href="/collections/favorites" class="btn btn-warning btn-block">Favorites</a>
-            </div>
+            {{else}}
+            <p class="text-muted text-center">You have no favorites yet. Start adding to your collection!</p>
+            {{/if}}
         </div>
 
-        <!-- loop added in app.js.. need to implement with each command -->
-
-        <!-- Add and Delete Collection Buttons -->
-        <div class="text-center mt-4">
-            <a href="/collections/add" class="btn btn-outline-primary mr-2">Add Collection</a>
-            <a href="/collections/delete" class="btn btn-outline-danger ml-2">Delete Collection</a>
+        <!-- Future Reads Section -->
+        <div>
+            <h2 class="text-center mb-4">Future Reads</h2>
+            {{#if futureReads.length}}
+            <div class="row">
+                {{#each futureReads}}
+                <div class="col-md-3 book-card">
+                    <div class="card h-100 shadow-sm">
+                        <a href="/book/{{this.isbn}}" class="text-decoration-none text-dark">
+                            {{#if this.coverLink}}
+                            <img 
+                                src="{{this.coverLink}}" 
+                                alt="Cover image of {{this.title}}" 
+                                class="card-img-top">
+                            {{else}}
+                            <img 
+                                src="/path/to/placeholder.jpg" 
+                                alt="Placeholder image" 
+                                class="card-img-top">
+                            {{/if}}
+                            <div class="card-body">
+                                <h5 class="card-title">{{this.title}}</h5>
+                                <p class="card-text"><strong>ISBN:</strong> {{this.isbn}}</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+            {{else}}
+            <p class="text-muted text-center">You have no future reads yet. Start exploring!</p>
+            {{/if}}
         </div>
     </div>
 
