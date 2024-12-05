@@ -20,12 +20,20 @@
             <p class="card-text"><strong>ISBN:</strong> {{book.isbn}}</p>
             <p class="card-text"><strong>Publisher:</strong> {{book.publisher}}</p>
             <p class="card-text"><strong>Subject(s):</strong> {{book.subject}}</p>
-            <form method="POST" action="/assign-fav">
-              <input type="hidden" name="isbn" value="{{book.isbn}}">
-              <button type="submit" class="btn {{#if book.isFavorited}}btn-danger{{else}}btn-primary{{/if}}">
-                {{#if book.isFavorited}}Remove from Favorites{{else}}Add to Favorites{{/if}}
-              </button>
-            </form>
+            <form method="POST" action="{{#if book.isFavorited}}/remove-fav{{else}}/assign-fav{{/if}}">
+  <input type="hidden" name="isbn" value="{{book.isbn}}">
+  <button type="submit" class="btn {{#if book.isFavorited}}btn-danger{{else}}btn-primary{{/if}}">
+    {{#if book.isFavorited}}Remove from Favorites{{else}}Add to Favorites{{/if}}
+  </button>
+</form>
+
+<form method="POST" action="{{#if book.isFutured}}/remove-future{{else}}/assign-future{{/if}}">
+  <input type="hidden" name="isbn" value="{{book.isbn}}">
+  <button type="submit" class="btn {{#if book.isFutured}}btn-danger{{else}}btn-primary{{/if}}">
+    {{#if book.isFutured}}Remove from Future Reads{{else}}Add to Future Reads{{/if}}
+  </button>
+</form>
+
             <a href="/searchtest?query={{book.title}}" class="btn btn-secondary mt-3">Back to Search Results</a>
           </div>
         </div>
