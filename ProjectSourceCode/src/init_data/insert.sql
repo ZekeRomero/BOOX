@@ -1,5 +1,10 @@
 INSERT INTO users (username, fullname, password)
 VALUES ('thatguy', 'Johnny Johnathon', '$2a$10$sexsvH3pYFolIBbcK7uT0uCRE4ABSpF4./FndO/B/o73o2KWLRD/.'), --password is password
+('john_doe', 'John Doe', '$2a$10$sexsvH3pYFolIBbcK7uT0uCRE4ABSpF4./FndO/B/o73o2KWLRD/.'),
+('jane_smith', 'Jane Smith', '$2a$10$sexsvH3pYFolIBbcK7uT0uCRE4ABSpF4./FndO/B/o73o2KWLRD/.'),
+('alice_williams', 'Alice Williams', '$2a$10$sexsvH3pYFolIBbcK7uT0uCRE4ABSpF4./FndO/B/o73o2KWLRD/.'),
+('bob_brown', 'Bob Brown', '$2a$10$sexsvH3pYFolIBbcK7uT0uCRE4ABSpF4./FndO/B/o73o2KWLRD/.'),
+('susan_jones', 'Susan Jones', '$2a$10$sexsvH3pYFolIBbcK7uT0uCRE4ABSpF4./FndO/B/o73o2KWLRD/.'),
 ('otherguy', 'Name Name', '$2a$10$b.XhuOV5nWMw4XoAcKkDge42/2D8YuaK9zzXazfFtvLMdtMGLJ7Mi'); --password is 123
 
 
