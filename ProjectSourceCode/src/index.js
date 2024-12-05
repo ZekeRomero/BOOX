@@ -25,7 +25,7 @@ const hbs = handlebars.create({
 // database configuration
 const dbConfig = {
   host: process.env.POSTGRES_HOST, // the database server
-  port: 5432, // the database port
+  port: process.env.POSTGRES_PORT, // the database port
   database: process.env.POSTGRES_DB, // the database name
   user: process.env.POSTGRES_USER, // the user account to connect with
   password: process.env.POSTGRES_PASSWORD, // the password of the user account
@@ -43,65 +43,7 @@ db.connect()
     .catch(error => {
         console.log('ERROR:', error.message || error);
     });
-/*
-const createTable = async () => {
-  try {
-    await db.none(`
-              CREATE TABLE IF NOT EXISTS "users" (
-                  user_id SERIAL PRIMARY KEY,  -- the primary key for each entry
-                  username VARCHAR(100) NOT NULL,
-                  fullname VARCHAR(100) NOT NULL,
-                  password VARCHAR(100) NOT NULL
-              );
-          `);
-          console.log("Table 'users' created successfully.");
-      } catch (error) {
-          console.error("Error creating table:", error);
-      }
-      try {
-        await db.none(`
-            CREATE TABLE IF NOT EXISTS "User_ISBNs" (
-                id SERIAL PRIMARY KEY,
-                user_id INTEGER REFERENCES Users(user_id) ON DELETE CASCADE,
-                isbn VARCHAR(13) NOT NULL
-            );
-        `);
-        console.log("Table 'user_isbns' created successfully.");
-    } catch (error) {
-        console.error("Error creating table:", error);
-    }
-  };
-  const insertData = async () => {
-    try {
-      await db.none(`
-        INSERT INTO "users" (username, fullname, password) 
-        VALUES ('thatguy', 'Johnny Johnathon', 'password');
-      `);
-      console.log("User data inserted successfully.");
-    } catch (error) {
-      console.error("Error inserting user data:", error);
-    }
-  
-    try {
-      await db.none(`
-        INSERT INTO "User_ISBNs" (user_id, isbn) VALUES 
-        (1, '9780143127741'),
-        (1, '9780307474278');
-      `);
-      console.log("ISBN data inserted successfully.");
-    } catch (error) {
-      console.error("Error inserting ISBN data:", error);
-    }
-  };
 
-  
-
-  createTable()
-    .then(() => console.log("Database setup complete"))
-    .catch(error => console.error("Database setup failed:", error));
-  //insertData()
-  */
-// *****************************************************
 
 
 // Register `hbs` as our view engine using its bound `engine()` function.
@@ -116,7 +58,7 @@ app.use('/resources', express.static(path.join(__dirname, 'resources')));
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
-    saveUninitialized: true,
+    saveUninitialized: false,
     resave: false,
   })
 );
