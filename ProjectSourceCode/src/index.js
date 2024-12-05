@@ -24,11 +24,11 @@ const hbs = handlebars.create({
 
 // database configuration
 const dbConfig = {
-  host: process.env.POSTGRES_HOST, // the database server
-  port: process.env.POSTGRES_PORT, // the database port
-  database: process.env.POSTGRES_DB, // the database name
-  user: process.env.POSTGRES_USER, // the user account to connect with
-  password: process.env.POSTGRES_PASSWORD, // the password of the user account
+  host: "dpg-ct8hdj5ds78s73cb3do0-a.oregon-postgres.render.com", // the database server
+  port: 5432, // the database port
+  database: "boox_db", // the database name
+  user: "boox_db_user", // the user account to connect with
+  password: "qOb4HrdJBmGzQMuI3pBsBcotP1cGitVS", // the password of the user account
 };
 
 
