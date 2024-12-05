@@ -223,6 +223,117 @@ app.post('/assign-fav', async (req, res) => {
   }
 });
 
+app.post('/assign-future', async (req, res) => {
+  const gottenisbn = req.body.isbn;
+  try {
+    console.log("hello");
+
+    // Ensure user data is present in the session
+    if (!req.session.user) {
+      return res.status(401).send("Unauthorized: No user logged in");
+    }
+
+    const userName = req.session.user.username; // `id` should map to the user's `user_id` in the database
+    console.log(userName);
+    console.log(gottenisbn);
+    const userQuery = 'SELECT user_id FROM users WHERE username = $1';
+    const result = await db.oneOrNone(userQuery, [userName]);
+    const userId = result ? result.user_id : null; // Safely extract the user_id
+    console.log(userId);
+    await db.none(
+      `
+      INSERT INTO "user_collections" (user_id, store_type, book_isbn) 
+      VALUES ($1, $2, $3)
+      `,
+      [userId, 2, gottenisbn]
+    );
+    console.log("Data inserted successfully.");
+    res.redirect('/homepage');
+
+  } catch (error) {
+    console.error("Error inserting data:", error);
+    res.status(500).send("An error occurred while assigning the ISBN.");
+  }
+});
+
+app.post('/remove-fav', async (req, res) => {
+  const gottenisbn = req.body.isbn;
+  try {
+    console.log("hello");
+
+    // Ensure user data is present in the session
+    if (!req.session.user) {
+      return res.status(401).send("Unauthorized: No user logged in");
+    }
+
+    const userName = req.session.user.username; // `username` should map to the user's `username` in the session
+    console.log(userName);
+    console.log(gottenisbn);
+
+    // Retrieve the user's ID from the database
+    const userQuery = 'SELECT user_id FROM users WHERE username = $1';
+    const result = await db.oneOrNone(userQuery, [userName]);
+    const userId = result ? result.user_id : null; // Safely extract the user_id
+    if (!userId) {
+      return res.status(404).send("User not found.");
+    }
+    console.log(userId);
+
+    // Delete the book from the user's favorites
+    const deleteQuery = `
+      DELETE FROM user_collections
+      WHERE user_id = $1 AND store_type = $2 AND book_isbn = $3
+    `;
+    await db.none(deleteQuery, [userId, 1, gottenisbn]);
+
+    console.log("Book removed successfully.");
+    res.redirect('back'); // Redirect back to the book details page
+  } catch (error) {
+    console.error("Error removing from favorites:", error);
+    res.status(500).send("Error removing book from favorites.");
+  }
+});
+
+
+app.post('/remove-future', async (req, res) => {
+  const gottenisbn = req.body.isbn;
+  try {
+    console.log("hello");
+
+    // Ensure user data is present in the session
+    if (!req.session.user) {
+      return res.status(401).send("Unauthorized: No user logged in");
+    }
+
+    const userName = req.session.user.username; // `username` should map to the user's `username` in the session
+    console.log(userName);
+    console.log(gottenisbn);
+
+    // Retrieve the user's ID from the database
+    const userQuery = 'SELECT user_id FROM users WHERE username = $1';
+    const result = await db.oneOrNone(userQuery, [userName]);
+    const userId = result ? result.user_id : null; // Safely extract the user_id
+    if (!userId) {
+      return res.status(404).send("User not found.");
+    }
+    console.log(userId);
+
+    // Delete the book from the user's favorites
+    const deleteQuery = `
+      DELETE FROM user_collections
+      WHERE user_id = $1 AND store_type = $2 AND book_isbn = $3
+    `;
+    await db.none(deleteQuery, [userId, 2, gottenisbn]);
+
+    console.log("Book removed successfully.");
+    res.redirect('back'); // Redirect back to the book details page
+  } catch (error) {
+    console.error("Error removing from favorites:", error);
+    res.status(500).send("Error removing book from favorites.");
+  }
+});
+
+
 
 app.get('/book/:isbn', async (req, res) => {
   const isbn = req.params.isbn;
@@ -249,6 +360,8 @@ app.get('/book/:isbn', async (req, res) => {
     const userId = result ? result.user_id : null; // Safely extract the user_id
     const isFavorited = await checkIfBookIsFavorited(userId, isbn); // Example function
     bookDetails.isFavorited = isFavorited;
+    const isFutured = await checkIfBookIsFutured(userId, isbn); // Example function
+    bookDetails.isFutured = isFutured;
     
 
     res.render('pages/bookDetails', { book: bookDetails });
@@ -259,6 +372,11 @@ app.get('/book/:isbn', async (req, res) => {
 });
 async function checkIfBookIsFavorited(userId, isbn) {
   const result = await db.query('SELECT 1 FROM user_collections WHERE user_id = $1 AND store_type = 1 AND book_isbn = $2', [userId, isbn]);
+  console.log(result.length);
+  return result.length > 0;
+};
+async function checkIfBookIsFutured(userId, isbn) {
+  const result = await db.query('SELECT 1 FROM user_collections WHERE user_id = $1 AND store_type = 2 AND book_isbn = $2', [userId, isbn]);
   console.log(result.length);
   return result.length > 0;
 };
@@ -621,11 +739,65 @@ app.get('/logout', (req, res) => {
 });
 
 
-app.get('/collections', (req, res) => {
-  const genres = ['Horror', 'Comedy', 'Romance', 'Sci-Fi', 'Fantasy', 'Mystery']
-  res.render('pages/collections', { genres })
+// Route for collections
+app.get('/collections', async (req, res) => {
+  try {
+    // Check if the user is logged in
+    if (!req.session.user) {
+      return res.redirect('/login');
+    }
 
+    const userName = req.session.user.username;
+    const userQuery = 'SELECT user_id FROM users WHERE username = $1';
+    const result = await db.oneOrNone(userQuery, [userName]);
+    const userId = result ? result.user_id : null;
+
+    if (!userId) {
+      return res.status(400).send("User not found.");
+    }
+
+    // Fetch both collections: Favorites (store_type = 1) and Future Reads (store_type = 2)
+    const collectionsQuery = `
+      SELECT book_isbn, store_type 
+      FROM user_collections 
+      WHERE user_id = $1
+    `;
+    const userCollections = await db.any(collectionsQuery, [userId]);
+
+    // Separate books into favorites and future reads
+    const favorites = [];
+    const futureReads = [];
+
+    for (const collection of userCollections) {
+      try {
+        const response = await axios.get(`https://api2.isbndb.com/books/${collection.book_isbn}`, {
+          headers: { 'Authorization': "56937_dcb1ace02f9d3be8f6440ffbe1882eca" }
+        });
+        const bookData = response.data.books[0];
+        const book = {
+          title: bookData.title || 'Unknown Title',
+          isbn: bookData.isbn || 'N/A',
+          coverLink: bookData.image || ''
+        };
+
+        if (collection.store_type === 1) {
+          favorites.push(book);
+        } else if (collection.store_type === 2) {
+          futureReads.push(book);
+        }
+      } catch (error) {
+        console.error(`Error fetching details for ISBN ${collection.book_isbn}:`, error);
+      }
+    }
+
+    // Render the collections page with both lists
+    res.render('pages/collections', { favorites, futureReads });
+  } catch (error) {
+    console.error("Error fetching collections:", error);
+    res.status(500).send("An error occurred while fetching your collections.");
+  }
 });
+
 
 app.post('/delete-account', async (req, res) => {
   if (!req.session.user) {
