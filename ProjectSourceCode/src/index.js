@@ -24,8 +24,11 @@ const hbs = handlebars.create({
 
 // database configuration
 const dbConfig = {
-  connectionString: process.env.DATABASE_URL, // Use DATABASE_URL for cloud hosting
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false, // Enable SSL in production
+  host:'db', // the database server
+  port: 5432, // the database port
+  database: process.env.POSTGRES_DB, // the database name
+  user: process.env.POSTGRES_USER, // the user account to connect with
+  password: process.env.POSTGRES_PASSWORD, // the password of the user account
 };
 
 
@@ -965,7 +968,5 @@ app.get('/welcome', (req, res) => {
 });
 // *****************************************************
 
-const PORT = process.env.PORT || 3000; // Use the PORT environment variable for Render compatibility
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+module.exports = app.listen(3000);
+console.log('Server is listening on port 3000');
