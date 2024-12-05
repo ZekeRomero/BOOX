@@ -29,6 +29,7 @@ const dbConfig = {
   database: "boox_db", // the database name
   user: "boox_db_user", // the user account to connect with
   password: "qOb4HrdJBmGzQMuI3pBsBcotP1cGitVS", // the password of the user account
+  ssl: true
 };
 
 
