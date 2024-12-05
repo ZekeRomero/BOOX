@@ -55,25 +55,25 @@ app.use('/static', express.static('src'));
 app.use('/resources', express.static(path.join(__dirname, 'resources')));
 
 // initialize session variables
-/*app.use(
+app.use(
   session({
-    secret: process.env.SESSION_SECRET,
+    secret: "super duper secret!",
     saveUninitialized: true,
     resave: true,
   })
 );
-*/
+
 app.use(
   bodyParser.urlencoded({
     extended: true,
   })
 );
-/*
+
 app.use((req, res, next) => {
   res.locals.user = req.session.user;
   next();
 });
-*/
+
 
 
 // Authentication Middleware.
