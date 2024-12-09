@@ -1,0 +1,28 @@
+The read me would not allow the directory structure to be properly layed out, so we created a new file for it.
+
+
+Directory Structure: 
+
+BOOX/
+├── Milestone Submissions
+├── Project Source Code/
+│   ├── Node Modules
+│   ├── src/
+│   │   ├── init_data/
+│   │   │   ├── create.sql
+│   │   │   └── insert.sql
+│   │   ├── resources/
+│   │   │   ├── images
+│   │   │   ├── scripts
+│   │   │   └── styles
+│   │   ├── views/
+│   │   │   ├── layouts
+│   │   │   ├── pages
+│   │   │   └── partials
+│   │   ├── index.js
+│   │   ├── test
+│   │   └── docker compose
+│   ├── test
+│   ├── .env
+│   └── .gitignore
+└── Team Meeting Logs
