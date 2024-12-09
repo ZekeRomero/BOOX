@@ -16,6 +16,8 @@ Boox is a multi-user book-sharing platform designed to connect book enthusiasts 
 
 Upon joining, users gain access to a variety of engaging features. When creating an account, they can select a unique, displayable username and choose a profile picture from our fifteen curated options. Users can also connect with friends who share similar literary interests, making the experience more social and personalized. By searching for a novel, they can view detailed information about the book, such as the author, release year, and a brief summary, excluding the book’s full content. Additionally, users can organize their reading lists by sorting titles into collections such as their favorite books or possible future reads for ease of access. Beyond collections, users can review and share their thoughts on books through a dedicated reviews page visible to the entire community. Boox is more than a platform for individual discovery—it’s a hub for fostering meaningful connections among readers with shared passions.
 
+Project Demonstrations: https://youtu.be/DLZJ3ypAByI
+
 
 Technology Stack:
 
