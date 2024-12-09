@@ -33,3 +33,36 @@ POSTgreSQL: to store user data, bookpost, discussion, etc..
 .env: data layer
 
 
+Directory Structure: 
+
+BOOX/
+├── Milestone Submissions
+├── Project Source Code/
+│   ├── Node Modules
+│   ├── src/
+│   │   ├── init_data/
+│   │   │   ├── create.sql
+│   │   │   └── insert.sql
+│   │   ├── resources/
+│   │   │   ├── images
+│   │   │   ├── scripts
+│   │   │   └── styles
+│   │   ├── views/
+│   │   │   ├── layouts
+│   │   │   ├── pages
+│   │   │   └── partials
+│   │   ├── index.js
+│   │   ├── test
+│   │   └── docker compose
+│   ├── test
+│   ├── .env
+│   └── .gitignore
+└── Team Meeting Logs
+
+
+How to run:
+Local host: 
+  Docker compose up -d
+  navigate to localhost.3000/login
+
+Deployment Link: https://boox.onrender.com 
